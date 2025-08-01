@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenacity X Sir Newson</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&family=Inter:wght@400;700&family=Playfair+Display:wght@700&family=Roboto+Mono&family=Lobster&family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-primary: #981491; /* Funcity Orange */
+            --brand-secondary: #000000; /* Funcity Blue */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e5e7eb;
+            color: #111827;
+            background-image: radial-gradient(circle at top left, #f3f4f6, #d1d5db);
+        }
+        .gradient-text {
+            background: linear-gradient(to right, var(--brand-primary), var(--brand-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        #canvas-container { width: 100%; max-width: 420px; transition: aspect-ratio 0.3s ease; }
+        #canvas {
+            width: 100%;
+            height: 100%;
+            cursor: default;
+            background-color: #ffffff;
+        }
+        .layer-list-item { cursor: grab; }
+        .layer-list-item.selected { background-color: var(--brand-secondary); color: white; }
+        .layer-list-item.dragging { opacity: 0.5; }
+
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        .active-btn {
+            background-color: var(--brand-primary) !important;
+            color: #ffffff !important;
+            border-color: var(--brand-primary) !important;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen p-4 sm:p-6 lg:p-8">
+
+    <div class="w-full max-w-7xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-5xl md:text-6xl font-bold gradient-text">Tenacity Locks</h1>
+            <p class="text-gray-600 mt-3 max-w-2xl mx-auto">
+                Image Branding & Customization Studio
+            </p>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-10 lg:gap-12">
+
+            <!-- Controls Section -->
+            <div class="w-full lg:w-1/3 p-6 rounded-2xl shadow-xl glass-panel">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Controls</h2>
+                
+                <details class="border-b border-gray-300/50 py-4" open>
+                    <summary class="font-bold cursor-pointer text-gray-700">1. Canvas Size</summary>
+                     <div id="aspectRatioContainer" class="grid grid-cols-2 gap-2 mt-4">
+                        <button class="ratio-btn border border-gray-400/50 rounded-md py-2 text-sm transition hover:bg-white/50 active-btn" data-ratio="4:5">Post (4:5)</button>
+                        <button class="ratio-btn border border-gray-400/50 rounded-md py-2 text-sm transition hover:bg-white/50" data-ratio="9:16">Stories (9:16)</button>
+                    </div>
+                </details>
+
+                <details class="border-b border-gray-300/50 py-4" open>
+                    <summary class="font-bold cursor-pointer text-gray-700">2. Add Content</summary>
+                    <div class="space-y-4 mt-4">
+                        <label for="addImageInput" class="w-full block text-center cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition">Add Image</label>
+                        <input type="file" id="addImageInput" class="hidden" accept="image/*">
+                    </div>
+                </details>
+                
+                <details id="layers-section" class="border-b border-gray-300/50 py-4 hidden" open>
+                    <summary class="font-bold cursor-pointer text-gray-700">Your Layers</summary>
+                    <ol id="layerList" class="space-y-2 mt-4"></ol>
+                </details>
+                
+                <details id="layer-controls" class="py-4 hidden" open>
+                    <summary class="font-bold cursor-pointer text-gray-700">3. Edit Selected Layer</summary>
+                    <div class="mt-4 space-y-4">
+                        <!-- Text Controls -->
+                        <div id="text-controls" class="hidden space-y-4">
+                            <div>
+                                <label for="fontFamilyInput" class="block text-sm font-medium text-gray-700 mb-1">Font Family</label>
+                                <select id="fontFamilyInput" class="w-full border border-gray-300 rounded-lg p-2 bg-white/80">
+                                    <option value="Poppins">Poppins</option>
+                                    <option value="Inter">Inter</option>
+                                    <option value="Playfair Display">Playfair Display</option>
+                                    <option value="Roboto Mono">Roboto Mono</option>
+                                    <option value="Lobster">Lobster</option>
+                                    <option value="Pacifico">Pacifico</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="textContentInput" class="block text-sm font-medium text-gray-700 mb-1">Text</label>
+                                <textarea id="textContentInput" rows="3" class="w-full border border-gray-300 rounded-lg p-2"></textarea>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="textSizeInput" class="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                                    <input type="range" id="textSizeInput" min="10" max="400" value="48" class="w-full">
+                                </div>
+                                <div>
+                                    <label for="textColorInput" class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                                    <input type="color" id="textColorInput" value="#000000" class="w-full h-10 border border-gray-300 rounded-lg">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="lineHeightInput" class="block text-sm font-medium text-gray-700 mb-1">Line Spacing</label>
+                                <input type="range" id="lineHeightInput" min="0.8" max="3" value="1.2" step="0.1" class="w-full">
+                            </div>
+                        </div>
+                        <!-- Image Controls -->
+                        <div id="image-controls" class="hidden space-y-4">
+                            <div>
+                                <label for="imageScaleInput" class="block text-sm font-medium text-gray-700 mb-1">Scale</label>
+                                <input type="range" id="imageScaleInput" min="10" max="300" value="100" class="w-full">
+                            </div>
+                        </div>
+                        <button id="deleteLayerBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition">Delete Layer</button>
+                    </div>
+                </details>
+
+                 <div class="mt-8">
+                    <button id="exportBtn" class="w-full bg-[var(--brand-primary)] hover:opacity-90 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg">Export as PNG</button>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="w-full lg:w-2/3 flex items-center justify-center">
+                <div id="canvas-container" style="aspect-ratio: 4 / 5;">
+                    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="w-full max-w-7xl mx-auto text-right mt-4 pr-4">
+        <a href="https://sirnewson.com" target="_blank" rel="noopener noreferrer" class="text-gray-500 text-xs sm:text-sm hover:text-[var(--brand-primary)] transition">
+            Created By Sir Newson
+        </a>
+    </footer>
+
+    <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const canvasContainer = document.getElementById('canvas-container');
+    const aspectRatioContainer = document.getElementById('aspectRatioContainer');
+    const addTextBtn = document.getElementById('addTextBtn');
+    const addImageInput = document.getElementById('addImageInput');
+    const exportBtn = document.getElementById('exportBtn');
+    
+    const layerControls = document.getElementById('layer-controls');
+    const textControls = document.getElementById('text-controls');
+    const imageControls = document.getElementById('image-controls');
+    const textContentInput = document.getElementById('textContentInput');
+    const textSizeInput = document.getElementById('textSizeInput');
+    const textColorInput = document.getElementById('textColorInput');
+    const fontFamilyInput = document.getElementById('fontFamilyInput');
+    const lineHeightInput = document.getElementById('lineHeightInput');
+    const imageScaleInput = document.getElementById('imageScaleInput');
+    const deleteLayerBtn = document.getElementById('deleteLayerBtn');
+    const layerList = document.getElementById('layerList');
+    const layersSection = document.getElementById('layers-section');
+
+    let layers = [];
+    let selectedLayer = null;
+    let layerCounter = 0;
+    let isDragging = false;
+    let isResizing = false;
+    let dragStart = { x: 0, y: 0 };
+    let resizeStart = { x: 0, y: 0, width: 0, height: 0 };
+
+    const overlays = {
+        post: new Image(),
+        reel: new Image()
+    };
+    overlays.post.crossOrigin = "anonymous";
+    overlays.reel.crossOrigin = "anonymous";
+    overlays.post.src = 'https://i.ibb.co/MDrxLQxq/post-overlay.png';
+    overlays.reel.src = 'https://i.ibb.co/t5J2Yhg/reeel-overlay.png';
+
+    let currentAspectRatio = '4:5';
+
+    // --- Canvas & Drawing ---
+    function setCanvasSize() {
+        const ratio = currentAspectRatio === '4:5' ? 4/5 : 9/16;
+        canvas.width = 1080;
+        canvas.height = currentAspectRatio === '4:5' ? 1350 : 1920;
+        canvasContainer.style.aspectRatio = ratio;
+        drawCanvas();
+    }
+
+    async function drawCanvas() {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const sortedLayers = [...layers].sort((a, b) => a.zIndex - b.zIndex);
+        for (const layer of sortedLayers) {
+            await drawLayer(layer);
+        }
+
+        const overlay = currentAspectRatio === '4:5' ? overlays.post : overlays.reel;
+        if (overlay.complete) {
+            ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+        }
+
+        if (selectedLayer) {
+            drawSelectionHandles(selectedLayer);
+        }
+    }
+
+    async function drawLayer(layer) {
+        if (layer.type === 'image') {
+            if (layer.img && layer.img.complete) {
+                ctx.drawImage(layer.img, layer.x, layer.y, layer.width, layer.height);
+            }
+        } else if (layer.type === 'text') {
+            ctx.save();
+            await document.fonts.load(`700 ${layer.fontSize}px ${layer.fontFamily}`);
+            ctx.font = `700 ${layer.fontSize}px "${layer.fontFamily}"`;
+            ctx.fillStyle = layer.color;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            const lines = wrapText(layer.content, layer.width);
+            const totalHeight = lines.length * layer.fontSize * layer.lineHeight;
+            let y = layer.y + layer.height / 2 - totalHeight / 2 + (layer.fontSize * layer.lineHeight) / 2;
+
+
+            for (const line of lines) {
+                ctx.fillText(line, layer.x + layer.width / 2, y);
+                y += layer.fontSize * layer.lineHeight;
+            }
+            ctx.restore();
+        }
+    }
+    
+    function drawSelectionHandles(layer) {
+        ctx.strokeStyle = 'var(--brand-primary)';
+        ctx.lineWidth = 4;
+        ctx.setLineDash([10, 10]);
+        ctx.strokeRect(layer.x, layer.y, layer.width, layer.height);
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = 'var(--brand-primary)';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(layer.x + layer.width, layer.y + layer.height, 8, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    // --- Layer Management ---
+    function createLayer(type, content) {
+        layerCounter++;
+        const layerId = `layer-${layerCounter}`;
+        let layerData;
+
+        if (type === 'text') {
+            layerData = {
+                id: layerId, type: 'text', content: content,
+                x: 50, y: 150, width: 300, height: 100,
+                fontSize: 48, fontFamily: 'Poppins', color: '#000000',
+                fontWeight: '700', lineHeight: 1.2, zIndex: layerCounter
+            };
+        } else if (type === 'image') {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = content;
+            layerData = {
+                id: layerId, type: 'image', img: img,
+                x: 50, y: 50, width: 250, height: 250, zIndex: layerCounter
+            };
+            img.onload = () => {
+                const scale = Math.min( (canvas.width * 0.8) / img.naturalWidth, (canvas.height * 0.8) / img.naturalHeight);
+                layerData.width = img.naturalWidth * scale;
+                layerData.height = img.naturalHeight * scale;
+                drawCanvas();
+            };
+        }
+        
+        layers.push(layerData);
+        addLayerToList(layerData);
+        selectLayer(layerData);
+        drawCanvas();
+    }
+    
+    function addLayerToList(layerData) {
+        layersSection.classList.remove('hidden');
+        const listItem = document.createElement('li');
+        listItem.id = `list-${layerData.id}`;
+        listItem.draggable = true;
+        listItem.className = 'layer-list-item bg-gray-100 p-2 rounded-md flex justify-between items-center cursor-pointer hover:bg-gray-200';
+        listItem.innerHTML = `<span>${layerData.type.charAt(0).toUpperCase() + layerData.type.slice(1)} ${layers.length}</span>`;
+        listItem.onclick = () => selectLayer(layerData);
+        layerList.prepend(listItem);
+    }
+    
+    function updateLayerListSelection() {
+        document.querySelectorAll('.layer-list-item').forEach(item => {
+            item.classList.remove('selected');
+            if (selectedLayer && item.id === `list-${selectedLayer.id}`) {
+                item.classList.add('selected');
+            }
+        });
+    }
+
+    // --- Interaction Logic ---
+    function getMousePos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    function getLayerAtPos(pos) {
+        for (let i = layers.length - 1; i >= 0; i--) {
+            const layer = layers[i];
+            if (pos.x >= layer.x && pos.x <= layer.x + layer.width &&
+                pos.y >= layer.y && pos.y <= layer.y + layer.height) {
+                return layer;
+            }
+        }
+        return null;
+    }
+    
+    function getResizeHandleAtPos(layer, pos) {
+        const handleX = layer.x + layer.width;
+        const handleY = layer.y + layer.height;
+        const distance = Math.sqrt(Math.pow(pos.x - handleX, 2) + Math.pow(pos.y - handleY, 2));
+        return distance <= 15;
+    }
+    
+    function handleInteractionStart(e) {
+        const pos = getMousePos(e);
+        if (selectedLayer && getResizeHandleAtPos(selectedLayer, pos)) {
+            isResizing = true;
+            resizeStart.x = pos.x;
+            resizeStart.y = pos.y;
+            resizeStart.width = selectedLayer.width;
+            resizeStart.height = selectedLayer.height;
+        } else {
+            const targetLayer = getLayerAtPos(pos);
+            if (targetLayer) {
+                isDragging = true;
+                selectLayer(targetLayer);
+                dragStart.x = pos.x - targetLayer.x;
+                dragStart.y = pos.y - targetLayer.y;
+            } else {
+                deselectAll();
+            }
+        }
+    }
+
+    function handleInteractionMove(e) {
+        if (!isDragging && !isResizing) return;
+        e.preventDefault();
+        const pos = getMousePos(e);
+        if (isDragging && selectedLayer) {
+            selectedLayer.x = pos.x - dragStart.x;
+            selectedLayer.y = pos.y - dragStart.y;
+        } else if (isResizing && selectedLayer) {
+            selectedLayer.width = resizeStart.width + (pos.x - resizeStart.x);
+            selectedLayer.height = resizeStart.height + (pos.y - resizeStart.y);
+        }
+        drawCanvas();
+    }
+
+    function handleInteractionEnd() {
+        isDragging = false;
+        isResizing = false;
+    }
+
+    canvas.addEventListener('mousedown', handleInteractionStart);
+    canvas.addEventListener('mousemove', handleInteractionMove);
+    canvas.addEventListener('mouseup', handleInteractionEnd);
+    canvas.addEventListener('mouseleave', handleInteractionEnd);
+    canvas.addEventListener('touchstart', handleInteractionStart, { passive: false });
+    canvas.addEventListener('touchmove', handleInteractionMove, { passive: false });
+    canvas.addEventListener('touchend', handleInteractionEnd);
+
+
+    // --- Export ---
+    exportBtn.addEventListener('click', () => {
+        deselectAll();
+        drawCanvas().then(() => {
+            const link = document.createElement('a');
+            link.download = 'SN.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    });
+    
+    // --- Init & Helpers ---
+    window.onload = () => {
+        setCanvasSize();
+        let loaded = 0;
+        const onOverlayLoad = () => {
+            loaded++;
+            if (loaded === 2) drawCanvas();
+        };
+        overlays.post.onload = onOverlayLoad;
+        overlays.reel.onload = onOverlayLoad;
+    };
+    window.onresize = setCanvasSize;
+    
+    function selectLayer(layerData) {
+        selectedLayer = layerData;
+        updateControls();
+        updateLayerListSelection();
+        drawCanvas();
+    }
+    
+    function deselectAll() {
+        selectedLayer = null;
+        updateControls();
+        updateLayerListSelection();
+        drawCanvas();
+    }
+    
+    function updateControls() {
+        if (!selectedLayer) {
+            layerControls.classList.add('hidden');
+            return;
+        }
+        layerControls.classList.remove('hidden');
+        if (selectedLayer.type === 'text') {
+            textControls.classList.remove('hidden');
+            imageControls.classList.add('hidden');
+            textContentInput.value = selectedLayer.content;
+            textSizeInput.value = selectedLayer.fontSize;
+            textColorInput.value = selectedLayer.color;
+            fontFamilyInput.value = selectedLayer.fontFamily;
+            lineHeightInput.value = selectedLayer.lineHeight;
+        } else if (selectedLayer.type === 'image') {
+            textControls.classList.add('hidden');
+            imageControls.classList.remove('hidden');
+            const currentWidth = selectedLayer.width;
+            const originalWidth = selectedLayer.img.naturalWidth;
+            if (originalWidth > 0) {
+                 imageScaleInput.value = (currentWidth / originalWidth) * 100;
+            }
+        }
+    }
+    
+    function wrapText(text, maxWidth) {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = words[0] || '';
+
+        for (let i = 1; i < words.length; i++) {
+            const word = words[i];
+            const testLine = currentLine + ' ' + word;
+            if (ctx.measureText(testLine).width > maxWidth && currentLine.length > 0) {
+                lines.push(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = testLine;
+            }
+        }
+        lines.push(currentLine.trim());
+        return lines;
+    }
+    
+    textContentInput.addEventListener('input', (e) => {
+        if (selectedLayer?.type === 'text') {
+            selectedLayer.content = e.target.value;
+            drawCanvas();
+        }
+    });
+    textSizeInput.addEventListener('input', (e) => {
+        if (selectedLayer?.type === 'text') {
+            selectedLayer.fontSize = parseInt(e.target.value);
+            drawCanvas();
+        }
+    });
+    textColorInput.addEventListener('input', (e) => {
+        if (selectedLayer?.type === 'text') {
+            selectedLayer.color = e.target.value;
+            drawCanvas();
+        }
+    });
+    fontFamilyInput.addEventListener('input', (e) => {
+        if (selectedLayer?.type === 'text') {
+            selectedLayer.fontFamily = e.target.value;
+            drawCanvas();
+        }
+    });
+    lineHeightInput.addEventListener('input', (e) => {
+        if (selectedLayer?.type === 'text') {
+            selectedLayer.lineHeight = parseFloat(e.target.value);
+            drawCanvas();
+        }
+    });
+    imageScaleInput.addEventListener('input', (e) => {
+        if (selectedLayer?.type === 'image') {
+            const scale = parseInt(e.target.value) / 100;
+            const originalWidth = selectedLayer.img.naturalWidth;
+            const originalHeight = selectedLayer.img.naturalHeight;
+            selectedLayer.width = originalWidth * scale;
+            selectedLayer.height = originalHeight * scale;
+            drawCanvas();
+        }
+    });
+
+    deleteLayerBtn.addEventListener('click', () => {
+        if (selectedLayer) {
+            layers = layers.filter(l => l.id !== selectedLayer.id);
+            layerList.innerHTML = '';
+            layers.forEach(addLayerToList);
+            deselectAll();
+            if (layers.length === 0) {
+                layersSection.classList.add('hidden');
+            }
+        }
+    });
+    
+    aspectRatioContainer.addEventListener('click', (e) => {
+        const button = e.target.closest('.ratio-btn');
+        if (!button) return;
+        currentAspectRatio = button.dataset.ratio;
+        document.querySelectorAll('.ratio-btn').forEach(btn => btn.classList.remove('active-btn'));
+        button.classList.add('active-btn');
+        setCanvasSize();
+    });
+
+    // [FIX] Re-added the missing event listener for the Add Image button
+    addImageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => createLayer('image', event.target.result);
+            reader.readAsDataURL(file);
+        }
+    });
+
+    </script>
+</body>
+</html>
