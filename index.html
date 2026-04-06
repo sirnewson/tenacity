@@ -3,154 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenacity X Sir Newson</title>
+    <title>Tenacity Branding Studio Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&family=Inter:wght@400;700&family=Playfair+Display:wght@700&family=Roboto+Mono&family=Lobster&family=Pacifico&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand-primary: #981491; /* Funcity Orange */
-            --brand-secondary: #000000; /* Funcity Blue */
+            --brand-primary: #981491; 
+            --brand-secondary: #4f114b;
         }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #e5e7eb;
+            background-color: #f0f2f5;
             color: #111827;
-            background-image: radial-gradient(circle at top left, #f3f4f6, #d1d5db);
         }
         .gradient-text {
-            background: linear-gradient(to right, var(--brand-primary), var(--brand-secondary));
+            background: linear-gradient(to right, var(--brand-primary), #4f114b);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
         }
-        #canvas-container { width: 100%; max-width: 420px; transition: aspect-ratio 0.3s ease; }
+        #canvas-container { 
+            width: 100%; 
+            max-width: 500px; 
+            transition: aspect-ratio 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            background: #fff;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+            border-radius: 12px;
+            overflow: hidden;
+        }
         #canvas {
             width: 100%;
             height: 100%;
-            cursor: default;
-            background-color: #ffffff;
+            display: block;
+            touch-action: none;
         }
-        .layer-list-item { cursor: grab; }
-        .layer-list-item.selected { background-color: var(--brand-secondary); color: white; }
-        .layer-list-item.dragging { opacity: 0.5; }
-
-        details > summary { list-style: none; }
-        details > summary::-webkit-details-marker { display: none; }
-        .active-btn {
+        .active-ratio {
             background-color: var(--brand-primary) !important;
             color: #ffffff !important;
             border-color: var(--brand-primary) !important;
         }
+        input[type="range"] {
+            accent-color: var(--brand-primary);
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+        
+        /* Tooltip style */
+        .tool-btn { position: relative; }
+        .tool-btn:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 50;
+        }
     </style>
 </head>
-<body class="flex flex-col items-center min-h-screen p-4 sm:p-6 lg:p-8">
+<body class="flex flex-col items-center min-h-screen p-4 md:p-8">
 
     <div class="w-full max-w-7xl mx-auto">
-        <header class="text-center mb-10">
-            <h1 class="text-5xl md:text-6xl font-bold gradient-text">Tenacity Locks</h1>
-            <p class="text-gray-600 mt-3 max-w-2xl mx-auto">
-                Image Branding & Customization Studio
-            </p>
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl md:text-4xl font-black gradient-text tracking-tighter uppercase leading-none">Tenacity Studio</h1>
+                <p class="text-gray-400 text-sm font-semibold tracking-widest mt-1 uppercase">Pro Creative Engine</p>
+            </div>
+            
+            <div class="flex gap-2">
+                <button id="exportBtn" class="bg-black hover:bg-purple-900 text-white font-bold py-3 px-6 rounded-2xl transition-all shadow-xl flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Export
+                </button>
+            </div>
         </header>
 
-        <div class="flex flex-col lg:flex-row gap-10 lg:gap-12">
+        <div class="flex flex-col lg:flex-row gap-8 items-start justify-center">
 
-            <!-- Controls Section -->
-            <div class="w-full lg:w-1/3 p-6 rounded-2xl shadow-xl glass-panel">
-                <h2 class="text-xl font-bold mb-4 text-gray-800">Controls</h2>
+            <!-- Left Toolset -->
+            <div class="w-full lg:w-80 flex-shrink-0 space-y-4 order-2 lg:order-1">
                 
-                <details class="border-b border-gray-300/50 py-4" open>
-                    <summary class="font-bold cursor-pointer text-gray-700">1. Canvas Size</summary>
-                     <div id="aspectRatioContainer" class="grid grid-cols-2 gap-2 mt-4">
-                        <button class="ratio-btn border border-gray-400/50 rounded-md py-2 text-sm transition hover:bg-white/50 active-btn" data-ratio="4:5">Post (4:5)</button>
-                        <button class="ratio-btn border border-gray-400/50 rounded-md py-2 text-sm transition hover:bg-white/50" data-ratio="9:16">Stories (9:16)</button>
+                <!-- Background & Canvas -->
+                <div class="glass-panel rounded-2xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-xs font-black uppercase text-gray-400 tracking-widest">Canvas</h2>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <span class="text-[10px] font-bold text-gray-500 uppercase">Guides</span>
+                            <input type="checkbox" id="guideToggle" checked class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+                        </label>
                     </div>
-                </details>
+                    <div id="aspectRatioContainer" class="grid grid-cols-2 gap-2 mb-4">
+                        <button class="ratio-btn border border-gray-200 rounded-xl py-2 text-xs font-bold transition active-ratio" data-ratio="4:5">POST</button>
+                        <button class="ratio-btn border border-gray-200 rounded-xl py-2 text-xs font-bold transition" data-ratio="9:16">STORY</button>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 mb-2 uppercase">Background Color</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" id="bgColorInput" value="#ffffff" class="w-full h-8 rounded-lg cursor-pointer border-none bg-transparent">
+                            <button id="bgTransparentBtn" class="text-[10px] font-bold text-purple-600 uppercase hover:underline">Clear</button>
+                        </div>
+                    </div>
+                </div>
 
-                <details class="border-b border-gray-300/50 py-4" open>
-                    <summary class="font-bold cursor-pointer text-gray-700">2. Add Content</summary>
-                    <div class="space-y-4 mt-4">
-                        <label for="addImageInput" class="w-full block text-center cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition">Add Image</label>
+                <!-- Element Library -->
+                <div class="glass-panel rounded-2xl p-4">
+                    <h2 class="text-xs font-black uppercase text-gray-400 tracking-widest mb-3">Insert</h2>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="addTextBtn" class="flex flex-col items-center justify-center py-3 bg-white border border-gray-100 rounded-xl hover:border-purple-300 transition group">
+                            <svg class="text-gray-400 group-hover:text-purple-600 mb-1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+                            <span class="text-[10px] font-bold text-gray-600">TEXT</span>
+                        </button>
+                        <label for="addImageInput" class="flex flex-col items-center justify-center py-3 bg-white border border-gray-100 rounded-xl hover:border-purple-300 transition group cursor-pointer">
+                            <svg class="text-gray-400 group-hover:text-purple-600 mb-1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                            <span class="text-[10px] font-bold text-gray-600">IMAGE</span>
+                        </label>
+                        <button onclick="createLayer('shape', 'rect')" class="flex flex-col items-center justify-center py-3 bg-white border border-gray-100 rounded-xl hover:border-purple-300 transition group">
+                            <svg class="text-gray-400 group-hover:text-purple-600 mb-1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
+                            <span class="text-[10px] font-bold text-gray-600">RECT</span>
+                        </button>
+                        <button onclick="createLayer('shape', 'circle')" class="flex flex-col items-center justify-center py-3 bg-white border border-gray-100 rounded-xl hover:border-purple-300 transition group">
+                            <svg class="text-gray-400 group-hover:text-purple-600 mb-1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                            <span class="text-[10px] font-bold text-gray-600">CIRCLE</span>
+                        </button>
                         <input type="file" id="addImageInput" class="hidden" accept="image/*">
                     </div>
-                </details>
-                
-                <details id="layers-section" class="border-b border-gray-300/50 py-4 hidden" open>
-                    <summary class="font-bold cursor-pointer text-gray-700">Your Layers</summary>
-                    <ol id="layerList" class="space-y-2 mt-4"></ol>
-                </details>
-                
-                <details id="layer-controls" class="py-4 hidden" open>
-                    <summary class="font-bold cursor-pointer text-gray-700">3. Edit Selected Layer</summary>
-                    <div class="mt-4 space-y-4">
-                        <!-- Text Controls -->
-                        <div id="text-controls" class="hidden space-y-4">
+                </div>
+
+                <!-- Layer List -->
+                <div id="layers-section" class="glass-panel rounded-2xl p-4 hidden">
+                    <h2 class="text-xs font-black uppercase text-gray-400 tracking-widest mb-3">Layers</h2>
+                    <ul id="layerList" class="space-y-1 max-h-40 overflow-y-auto custom-scrollbar"></ul>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="w-full flex-grow flex flex-col items-center order-1 lg:order-2">
+                <div id="canvas-container" style="aspect-ratio: 4 / 5;">
+                    <canvas id="canvas"></canvas>
+                </div>
+                <div class="flex gap-8 mt-6">
+                    <div class="text-center">
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Position</p>
+                        <p id="posDisplay" class="text-xs font-mono text-gray-500">0, 0</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Dimensions</p>
+                        <p id="dimDisplay" class="text-xs font-mono text-gray-500">1080 x 1350</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Editor Panel -->
+            <div id="layer-controls" class="w-full lg:w-80 flex-shrink-0 space-y-4 order-3 hidden">
+                <div class="glass-panel rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
+                        <h2 class="text-xs font-black uppercase text-gray-400 tracking-widest">Layer Properties</h2>
+                        <button id="deleteLayerBtn" class="text-red-400 hover:text-red-600 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Common Controls -->
+                    <div class="space-y-4 mb-6">
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label for="fontFamilyInput" class="block text-sm font-medium text-gray-700 mb-1">Font Family</label>
-                                <select id="fontFamilyInput" class="w-full border border-gray-300 rounded-lg p-2 bg-white/80">
+                                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Opacity</label>
+                                <input type="range" id="opacityInput" min="0" max="1" step="0.05" value="1" class="w-full">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Rotate</label>
+                                <input type="range" id="rotateInput" min="0" max="360" value="0" class="w-full">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Text Specific -->
+                    <div id="text-controls" class="hidden space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-tighter">Content</label>
+                            <textarea id="textContentInput" rows="2" class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none resize-none font-medium"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Font</label>
+                                <select id="fontFamilyInput" class="w-full border border-gray-200 rounded-xl p-2 text-xs bg-white font-bold">
                                     <option value="Poppins">Poppins</option>
                                     <option value="Inter">Inter</option>
-                                    <option value="Playfair Display">Playfair Display</option>
-                                    <option value="Roboto Mono">Roboto Mono</option>
+                                    <option value="Playfair Display">Playfair</option>
+                                    <option value="Roboto Mono">Mono</option>
                                     <option value="Lobster">Lobster</option>
                                     <option value="Pacifico">Pacifico</option>
                                 </select>
                             </div>
                             <div>
-                                <label for="textContentInput" class="block text-sm font-medium text-gray-700 mb-1">Text</label>
-                                <textarea id="textContentInput" rows="3" class="w-full border border-gray-300 rounded-lg p-2"></textarea>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="textSizeInput" class="block text-sm font-medium text-gray-700 mb-1">Size</label>
-                                    <input type="range" id="textSizeInput" min="10" max="400" value="48" class="w-full">
-                                </div>
-                                <div>
-                                    <label for="textColorInput" class="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                                    <input type="color" id="textColorInput" value="#000000" class="w-full h-10 border border-gray-300 rounded-lg">
-                                </div>
-                            </div>
-                            <div>
-                                <label for="lineHeightInput" class="block text-sm font-medium text-gray-700 mb-1">Line Spacing</label>
-                                <input type="range" id="lineHeightInput" min="0.8" max="3" value="1.2" step="0.1" class="w-full">
+                                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Color</label>
+                                <input type="color" id="textColorInput" class="w-full h-8 rounded-lg cursor-pointer border-none bg-transparent">
                             </div>
                         </div>
-                        <!-- Image Controls -->
-                        <div id="image-controls" class="hidden space-y-4">
-                            <div>
-                                <label for="imageScaleInput" class="block text-sm font-medium text-gray-700 mb-1">Scale</label>
-                                <input type="range" id="imageScaleInput" min="10" max="300" value="100" class="w-full">
-                            </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase flex justify-between">Size <span id="sizeVal" class="text-purple-600">48px</span></label>
+                            <input type="range" id="textSizeInput" min="10" max="500" value="48" class="w-full">
                         </div>
-                        <button id="deleteLayerBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition">Delete Layer</button>
                     </div>
-                </details>
 
-                 <div class="mt-8">
-                    <button id="exportBtn" class="w-full bg-[var(--brand-primary)] hover:opacity-90 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg">Export as PNG</button>
-                </div>
-            </div>
+                    <!-- Image & Shape Color -->
+                    <div id="color-controls" class="hidden space-y-4 mt-4">
+                         <div>
+                            <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Fill Color</label>
+                            <input type="color" id="fillColorInput" class="w-full h-8 rounded-lg cursor-pointer border-none bg-transparent">
+                        </div>
+                    </div>
 
-            <!-- Preview Section -->
-            <div class="w-full lg:w-2/3 flex items-center justify-center">
-                <div id="canvas-container" style="aspect-ratio: 4 / 5;">
-                    <canvas id="canvas"></canvas>
+                    <!-- Image Specific -->
+                    <div id="image-controls" class="hidden space-y-4 mt-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase flex justify-between">Scale <span id="scaleVal" class="text-purple-600">100%</span></label>
+                            <input type="range" id="imageScaleInput" min="5" max="300" value="100" class="w-full">
+                        </div>
+                        <div class="pt-4 border-t border-gray-100">
+                             <h3 class="text-[10px] font-black uppercase text-gray-400 mb-3">Filters</h3>
+                             <div class="grid grid-cols-1 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 mb-1">Brightness</label>
+                                    <input type="range" id="filterBrightness" min="0" max="200" value="100" class="w-full">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 mb-1">Contrast</label>
+                                    <input type="range" id="filterContrast" min="0" max="200" value="100" class="w-full">
+                                </div>
+                                <div class="flex gap-4">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="filterGrayscale" class="rounded text-purple-600">
+                                        <span class="text-[10px] font-bold text-gray-500 uppercase">Gray</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="filterSepia" class="rounded text-purple-600">
+                                        <span class="text-[10px] font-bold text-gray-500 uppercase">Sepia</span>
+                                    </label>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <footer class="w-full max-w-7xl mx-auto text-right mt-4 pr-4">
-        <a href="https://sirnewson.com" target="_blank" rel="noopener noreferrer" class="text-gray-500 text-xs sm:text-sm hover:text-[var(--brand-primary)] transition">
-            Created By Sir Newson
-        </a>
+    <footer class="mt-auto py-8">
+        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest text-center">
+            Tenacity Studio Pro &bull; Design by <a href="https://sirnewson.com" target="_blank" class="text-purple-500 hover:text-black transition underline decoration-2 underline-offset-4">Sir Newson</a>
+        </p>
     </footer>
 
     <script>
@@ -161,19 +278,35 @@
     const addTextBtn = document.getElementById('addTextBtn');
     const addImageInput = document.getElementById('addImageInput');
     const exportBtn = document.getElementById('exportBtn');
+    const guideToggle = document.getElementById('guideToggle');
+    const bgColorInput = document.getElementById('bgColorInput');
+    const bgTransparentBtn = document.getElementById('bgTransparentBtn');
     
     const layerControls = document.getElementById('layer-controls');
     const textControls = document.getElementById('text-controls');
     const imageControls = document.getElementById('image-controls');
+    const colorControls = document.getElementById('color-controls');
+    
     const textContentInput = document.getElementById('textContentInput');
     const textSizeInput = document.getElementById('textSizeInput');
     const textColorInput = document.getElementById('textColorInput');
     const fontFamilyInput = document.getElementById('fontFamilyInput');
-    const lineHeightInput = document.getElementById('lineHeightInput');
+    const opacityInput = document.getElementById('opacityInput');
+    const rotateInput = document.getElementById('rotateInput');
+    const fillColorInput = document.getElementById('fillColorInput');
     const imageScaleInput = document.getElementById('imageScaleInput');
+    const scaleVal = document.getElementById('scaleVal');
+    
+    const filterBrightness = document.getElementById('filterBrightness');
+    const filterContrast = document.getElementById('filterContrast');
+    const filterGrayscale = document.getElementById('filterGrayscale');
+    const filterSepia = document.getElementById('filterSepia');
+    
     const deleteLayerBtn = document.getElementById('deleteLayerBtn');
     const layerList = document.getElementById('layerList');
     const layersSection = document.getElementById('layers-section');
+    const posDisplay = document.getElementById('posDisplay');
+    const dimDisplay = document.getElementById('dimDisplay');
 
     let layers = [];
     let selectedLayer = null;
@@ -182,6 +315,7 @@
     let isResizing = false;
     let dragStart = { x: 0, y: 0 };
     let resizeStart = { x: 0, y: 0, width: 0, height: 0 };
+    let canvasBg = '#ffffff';
 
     const overlays = {
         post: new Image(),
@@ -194,42 +328,73 @@
 
     let currentAspectRatio = '4:5';
 
-    // --- Canvas & Drawing ---
+    // --- Canvas Logic ---
     function setCanvasSize() {
         const ratio = currentAspectRatio === '4:5' ? 4/5 : 9/16;
         canvas.width = 1080;
         canvas.height = currentAspectRatio === '4:5' ? 1350 : 1920;
         canvasContainer.style.aspectRatio = ratio;
+        dimDisplay.innerText = `${canvas.width} x ${canvas.height}`;
         drawCanvas();
     }
 
-    async function drawCanvas() {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    async function drawCanvas(isExporting = false) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Background
+        if (canvasBg) {
+            ctx.fillStyle = canvasBg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
 
-        const sortedLayers = [...layers].sort((a, b) => a.zIndex - b.zIndex);
-        for (const layer of sortedLayers) {
+        // Layers
+        for (const layer of layers) {
             await drawLayer(layer);
         }
 
-        const overlay = currentAspectRatio === '4:5' ? overlays.post : overlays.reel;
-        if (overlay.complete) {
-            ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+        // Overlay Guide (PERMANENTLY ON TOP + FULL OPACITY)
+        if (guideToggle.checked) {
+            const overlay = currentAspectRatio === '4:5' ? overlays.post : overlays.reel;
+            if (overlay.complete) {
+                ctx.save();
+                ctx.globalAlpha = 1.0; // FULL OPACITY
+                ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            }
         }
 
-        if (selectedLayer) {
+        // Selection UI (Hide during export)
+        if (selectedLayer && !isExporting) {
             drawSelectionHandles(selectedLayer);
+            posDisplay.innerText = `${Math.round(selectedLayer.x)}, ${Math.round(selectedLayer.y)}`;
+        } else if (!isExporting) {
+            posDisplay.innerText = "0, 0";
         }
     }
 
     async function drawLayer(layer) {
+        ctx.save();
+        
+        // Transform
+        ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
+        ctx.rotate((layer.rotation || 0) * Math.PI / 180);
+        ctx.globalAlpha = layer.opacity !== undefined ? layer.opacity : 1;
+        ctx.translate(-(layer.x + layer.width / 2), -(layer.y + layer.height / 2));
+
         if (layer.type === 'image') {
             if (layer.img && layer.img.complete) {
+                // Apply filters
+                let filters = [];
+                if (layer.brightness !== 100) filters.push(`brightness(${layer.brightness}%)`);
+                if (layer.contrast !== 100) filters.push(`contrast(${layer.contrast}%)`);
+                if (layer.grayscale) filters.push(`grayscale(100%)`);
+                if (layer.sepia) filters.push(`sepia(100%)`);
+                ctx.filter = filters.length ? filters.join(' ') : 'none';
+                
                 ctx.drawImage(layer.img, layer.x, layer.y, layer.width, layer.height);
             }
         } else if (layer.type === 'text') {
-            ctx.save();
-            await document.fonts.load(`700 ${layer.fontSize}px ${layer.fontFamily}`);
+            await document.fonts.load(`700 ${layer.fontSize}px "${layer.fontFamily}"`);
             ctx.font = `700 ${layer.fontSize}px "${layer.fontFamily}"`;
             ctx.fillStyle = layer.color;
             ctx.textAlign = 'center';
@@ -237,322 +402,333 @@
             
             const lines = wrapText(layer.content, layer.width);
             const totalHeight = lines.length * layer.fontSize * layer.lineHeight;
-            let y = layer.y + layer.height / 2 - totalHeight / 2 + (layer.fontSize * layer.lineHeight) / 2;
+            let startY = layer.y + layer.height / 2 - totalHeight / 2 + (layer.fontSize * layer.lineHeight) / 2;
 
-
-            for (const line of lines) {
-                ctx.fillText(line, layer.x + layer.width / 2, y);
-                y += layer.fontSize * layer.lineHeight;
+            lines.forEach((line, i) => {
+                ctx.fillText(line, layer.x + layer.width / 2, startY + (i * layer.fontSize * layer.lineHeight));
+            });
+        } else if (layer.type === 'shape') {
+            ctx.fillStyle = layer.color || '#981491';
+            if (layer.shapeType === 'rect') {
+                ctx.fillRect(layer.x, layer.y, layer.width, layer.height);
+            } else if (layer.shapeType === 'circle') {
+                ctx.beginPath();
+                ctx.ellipse(layer.x + layer.width/2, layer.y + layer.height/2, layer.width/2, layer.height/2, 0, 0, 2 * Math.PI);
+                ctx.fill();
             }
-            ctx.restore();
         }
+        
+        ctx.restore();
     }
     
     function drawSelectionHandles(layer) {
-        ctx.strokeStyle = 'var(--brand-primary)';
-        ctx.lineWidth = 4;
-        ctx.setLineDash([10, 10]);
-        ctx.strokeRect(layer.x, layer.y, layer.width, layer.height);
-        ctx.setLineDash([]);
+        ctx.save();
+        ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
+        ctx.rotate((layer.rotation || 0) * Math.PI / 180);
+        ctx.translate(-(layer.x + layer.width / 2), -(layer.y + layer.height / 2));
 
-        ctx.fillStyle = 'var(--brand-primary)';
+        ctx.strokeStyle = '#981491';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([8, 8]);
+        ctx.strokeRect(layer.x, layer.y, layer.width, layer.height);
+        
+        // Resize handle
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#981491';
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(layer.x + layer.width, layer.y + layer.height, 8, 0, 2 * Math.PI);
+        ctx.arc(layer.x + layer.width, layer.y + layer.height, 14, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
+        ctx.restore();
     }
 
-    // --- Layer Management ---
-    function createLayer(type, content) {
+    // --- Layer Operations ---
+    function createLayer(type, subtype) {
         layerCounter++;
         const layerId = `layer-${layerCounter}`;
-        let layerData;
+        let layerData = {
+            id: layerId, type, rotation: 0, opacity: 1, 
+            x: canvas.width / 2 - 150, y: canvas.height / 2 - 150,
+            width: 300, height: 300
+        };
 
         if (type === 'text') {
-            layerData = {
-                id: layerId, type: 'text', content: content,
-                x: 50, y: 150, width: 300, height: 100,
-                fontSize: 48, fontFamily: 'Poppins', color: '#000000',
-                fontWeight: '700', lineHeight: 1.2, zIndex: layerCounter
-            };
+            Object.assign(layerData, {
+                content: subtype || 'Brand Text',
+                fontSize: 80, fontFamily: 'Poppins', color: '#000000', lineHeight: 1.1,
+                width: 600, height: 160, x: (canvas.width - 600) / 2
+            });
         } else if (type === 'image') {
             const img = new Image();
             img.crossOrigin = "anonymous";
-            img.src = content;
-            layerData = {
-                id: layerId, type: 'image', img: img,
-                x: 50, y: 50, width: 250, height: 250, zIndex: layerCounter
-            };
+            img.src = subtype;
+            Object.assign(layerData, { 
+                img, brightness: 100, contrast: 100, grayscale: false, sepia: false 
+            });
             img.onload = () => {
-                const scale = Math.min( (canvas.width * 0.8) / img.naturalWidth, (canvas.height * 0.8) / img.naturalHeight);
-                layerData.width = img.naturalWidth * scale;
-                layerData.height = img.naturalHeight * scale;
+                const s = Math.min(600 / img.naturalWidth, 600 / img.naturalHeight);
+                layerData.width = img.naturalWidth * s;
+                layerData.height = img.naturalHeight * s;
+                layerData.x = (canvas.width - layerData.width) / 2;
+                layerData.y = (canvas.height - layerData.height) / 2;
                 drawCanvas();
             };
+        } else if (type === 'shape') {
+            Object.assign(layerData, {
+                shapeType: subtype, color: '#981491', width: 400, height: 400,
+                x: (canvas.width - 400) / 2, y: (canvas.height - 400) / 2
+            });
         }
         
         layers.push(layerData);
-        addLayerToList(layerData);
         selectLayer(layerData);
-        drawCanvas();
+        renderLayerList();
     }
-    
-    function addLayerToList(layerData) {
+
+    function renderLayerList() {
+        if (!layers.length) { layersSection.classList.add('hidden'); return; }
         layersSection.classList.remove('hidden');
-        const listItem = document.createElement('li');
-        listItem.id = `list-${layerData.id}`;
-        listItem.draggable = true;
-        listItem.className = 'layer-list-item bg-gray-100 p-2 rounded-md flex justify-between items-center cursor-pointer hover:bg-gray-200';
-        listItem.innerHTML = `<span>${layerData.type.charAt(0).toUpperCase() + layerData.type.slice(1)} ${layers.length}</span>`;
-        listItem.onclick = () => selectLayer(layerData);
-        layerList.prepend(listItem);
-    }
-    
-    function updateLayerListSelection() {
-        document.querySelectorAll('.layer-list-item').forEach(item => {
-            item.classList.remove('selected');
-            if (selectedLayer && item.id === `list-${selectedLayer.id}`) {
-                item.classList.add('selected');
-            }
+        layerList.innerHTML = '';
+        [...layers].reverse().forEach((layer, idx) => {
+            const actualIdx = layers.indexOf(layer);
+            const li = document.createElement('li');
+            li.className = `flex items-center justify-between p-2 rounded-lg border text-[10px] font-bold cursor-pointer transition ${selectedLayer?.id === layer.id ? 'bg-purple-50 border-purple-200 text-purple-700' : 'bg-white border-gray-100 text-gray-500'}`;
+            li.onclick = (e) => { if (!e.target.closest('.l-btn')) selectLayer(layer); };
+            li.innerHTML = `
+                <span class="truncate pr-2 uppercase">${layer.type === 'text' ? layer.content.substring(0,10) : layer.type}</span>
+                <div class="flex gap-1">
+                    <button class="l-btn hover:text-purple-900" onclick="moveLayer(${actualIdx}, 1)">▲</button>
+                    <button class="l-btn hover:text-purple-900" onclick="moveLayer(${actualIdx}, -1)">▼</button>
+                </div>
+            `;
+            layerList.appendChild(li);
         });
     }
 
-    // --- Interaction Logic ---
+    window.moveLayer = (idx, dir) => {
+        const target = idx + dir;
+        if (target >= 0 && target < layers.length) {
+            const item = layers.splice(idx, 1)[0];
+            layers.splice(target, 0, item);
+            renderLayerList();
+            drawCanvas();
+        }
+    };
+
+    // --- Events ---
     function getMousePos(e) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return {
-            x: (clientX - rect.left) * scaleX,
-            y: (clientY - rect.top) * scaleY
-        };
+        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+    }
+
+    function handleStart(e) {
+        const pos = getMousePos(e);
+        
+        if (selectedLayer) {
+            const dist = Math.sqrt((pos.x - (selectedLayer.x + selectedLayer.width))**2 + (pos.y - (selectedLayer.y + selectedLayer.height))**2);
+            if (dist < 40) { isResizing = true; resizeStart = { x: pos.x, y: pos.y, w: selectedLayer.width, h: selectedLayer.height }; return; }
+        }
+
+        const target = getLayerAtPos(pos);
+        if (target) {
+            isDragging = true;
+            selectLayer(target);
+            dragStart = { x: pos.x - target.x, y: pos.y - target.y };
+        } else {
+            selectedLayer = null;
+            updateControls();
+            renderLayerList();
+            drawCanvas();
+        }
     }
 
     function getLayerAtPos(pos) {
         for (let i = layers.length - 1; i >= 0; i--) {
-            const layer = layers[i];
-            if (pos.x >= layer.x && pos.x <= layer.x + layer.width &&
-                pos.y >= layer.y && pos.y <= layer.y + layer.height) {
-                return layer;
-            }
+            const l = layers[i];
+            const cx = l.x + l.width / 2;
+            const cy = l.y + l.height / 2;
+            const rad = -(l.rotation || 0) * Math.PI / 180;
+            const rx = Math.cos(rad) * (pos.x - cx) - Math.sin(rad) * (pos.y - cy) + cx;
+            const ry = Math.sin(rad) * (pos.x - cx) + Math.cos(rad) * (pos.y - cy) + cy;
+            if (rx >= l.x && rx <= l.x + l.width && ry >= l.y && ry <= l.y + l.height) return l;
         }
         return null;
     }
-    
-    function getResizeHandleAtPos(layer, pos) {
-        const handleX = layer.x + layer.width;
-        const handleY = layer.y + layer.height;
-        const distance = Math.sqrt(Math.pow(pos.x - handleX, 2) + Math.pow(pos.y - handleY, 2));
-        return distance <= 15;
-    }
-    
-    function handleInteractionStart(e) {
-        const pos = getMousePos(e);
-        if (selectedLayer && getResizeHandleAtPos(selectedLayer, pos)) {
-            isResizing = true;
-            resizeStart.x = pos.x;
-            resizeStart.y = pos.y;
-            resizeStart.width = selectedLayer.width;
-            resizeStart.height = selectedLayer.height;
-        } else {
-            const targetLayer = getLayerAtPos(pos);
-            if (targetLayer) {
-                isDragging = true;
-                selectLayer(targetLayer);
-                dragStart.x = pos.x - targetLayer.x;
-                dragStart.y = pos.y - targetLayer.y;
-            } else {
-                deselectAll();
-            }
-        }
-    }
 
-    function handleInteractionMove(e) {
+    function handleMove(e) {
         if (!isDragging && !isResizing) return;
-        e.preventDefault();
         const pos = getMousePos(e);
         if (isDragging && selectedLayer) {
             selectedLayer.x = pos.x - dragStart.x;
             selectedLayer.y = pos.y - dragStart.y;
         } else if (isResizing && selectedLayer) {
-            selectedLayer.width = resizeStart.width + (pos.x - resizeStart.x);
-            selectedLayer.height = resizeStart.height + (pos.y - resizeStart.y);
+            selectedLayer.width = Math.max(20, resizeStart.w + (pos.x - resizeStart.x));
+            selectedLayer.height = Math.max(20, resizeStart.h + (pos.y - resizeStart.y));
+            if(selectedLayer.type === 'image') updateControls(); // Sync slider while dragging handles
         }
         drawCanvas();
     }
 
-    function handleInteractionEnd() {
-        isDragging = false;
-        isResizing = false;
-    }
-
-    canvas.addEventListener('mousedown', handleInteractionStart);
-    canvas.addEventListener('mousemove', handleInteractionMove);
-    canvas.addEventListener('mouseup', handleInteractionEnd);
-    canvas.addEventListener('mouseleave', handleInteractionEnd);
-    canvas.addEventListener('touchstart', handleInteractionStart, { passive: false });
-    canvas.addEventListener('touchmove', handleInteractionMove, { passive: false });
-    canvas.addEventListener('touchend', handleInteractionEnd);
-
-
-    // --- Export ---
-    exportBtn.addEventListener('click', () => {
-        deselectAll();
-        drawCanvas().then(() => {
-            const link = document.createElement('a');
-            link.download = 'SN.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        });
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+        if (!selectedLayer || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
+        const step = e.shiftKey ? 10 : 1;
+        if (e.key === 'ArrowUp') selectedLayer.y -= step;
+        else if (e.key === 'ArrowDown') selectedLayer.y += step;
+        else if (e.key === 'ArrowLeft') selectedLayer.x -= step;
+        else if (e.key === 'ArrowRight') selectedLayer.x += step;
+        else if (e.key === 'Delete' || e.key === 'Backspace') deleteLayerBtn.click();
+        drawCanvas();
     });
-    
-    // --- Init & Helpers ---
-    window.onload = () => {
-        setCanvasSize();
-        let loaded = 0;
-        const onOverlayLoad = () => {
-            loaded++;
-            if (loaded === 2) drawCanvas();
-        };
-        overlays.post.onload = onOverlayLoad;
-        overlays.reel.onload = onOverlayLoad;
-    };
-    window.onresize = setCanvasSize;
-    
-    function selectLayer(layerData) {
-        selectedLayer = layerData;
+
+    // Control Updates
+    function selectLayer(layer) {
+        selectedLayer = layer;
         updateControls();
-        updateLayerListSelection();
+        renderLayerList();
         drawCanvas();
     }
-    
-    function deselectAll() {
-        selectedLayer = null;
-        updateControls();
-        updateLayerListSelection();
-        drawCanvas();
-    }
-    
+
     function updateControls() {
-        if (!selectedLayer) {
-            layerControls.classList.add('hidden');
-            return;
-        }
+        if (!selectedLayer) { layerControls.classList.add('hidden'); return; }
         layerControls.classList.remove('hidden');
+        
+        opacityInput.value = selectedLayer.opacity;
+        rotateInput.value = selectedLayer.rotation;
+
         if (selectedLayer.type === 'text') {
             textControls.classList.remove('hidden');
             imageControls.classList.add('hidden');
+            colorControls.classList.add('hidden');
             textContentInput.value = selectedLayer.content;
             textSizeInput.value = selectedLayer.fontSize;
+            sizeVal.innerText = `${selectedLayer.fontSize}px`;
             textColorInput.value = selectedLayer.color;
             fontFamilyInput.value = selectedLayer.fontFamily;
-            lineHeightInput.value = selectedLayer.lineHeight;
         } else if (selectedLayer.type === 'image') {
             textControls.classList.add('hidden');
             imageControls.classList.remove('hidden');
-            const currentWidth = selectedLayer.width;
-            const originalWidth = selectedLayer.img.naturalWidth;
-            if (originalWidth > 0) {
-                 imageScaleInput.value = (currentWidth / originalWidth) * 100;
-            }
+            colorControls.classList.add('hidden');
+            
+            // Handle scale slider sync
+            const currentScale = Math.round((selectedLayer.width / selectedLayer.img.naturalWidth) * 100);
+            imageScaleInput.value = currentScale;
+            scaleVal.innerText = `${currentScale}%`;
+
+            filterBrightness.value = selectedLayer.brightness;
+            filterContrast.value = selectedLayer.contrast;
+            filterGrayscale.checked = selectedLayer.grayscale;
+            filterSepia.checked = selectedLayer.sepia;
+        } else if (selectedLayer.type === 'shape') {
+            textControls.classList.add('hidden');
+            imageControls.classList.add('hidden');
+            colorControls.classList.remove('hidden');
+            fillColorInput.value = selectedLayer.color;
         }
     }
-    
-    function wrapText(text, maxWidth) {
-        const words = text.split(' ');
-        const lines = [];
-        let currentLine = words[0] || '';
 
-        for (let i = 1; i < words.length; i++) {
-            const word = words[i];
-            const testLine = currentLine + ' ' + word;
-            if (ctx.measureText(testLine).width > maxWidth && currentLine.length > 0) {
-                lines.push(currentLine);
-                currentLine = word;
-            } else {
-                currentLine = testLine;
-            }
-        }
-        lines.push(currentLine.trim());
-        return lines;
-    }
-    
-    textContentInput.addEventListener('input', (e) => {
-        if (selectedLayer?.type === 'text') {
-            selectedLayer.content = e.target.value;
-            drawCanvas();
-        }
-    });
-    textSizeInput.addEventListener('input', (e) => {
-        if (selectedLayer?.type === 'text') {
-            selectedLayer.fontSize = parseInt(e.target.value);
-            drawCanvas();
-        }
-    });
-    textColorInput.addEventListener('input', (e) => {
-        if (selectedLayer?.type === 'text') {
-            selectedLayer.color = e.target.value;
-            drawCanvas();
-        }
-    });
-    fontFamilyInput.addEventListener('input', (e) => {
-        if (selectedLayer?.type === 'text') {
-            selectedLayer.fontFamily = e.target.value;
-            drawCanvas();
-        }
-    });
-    lineHeightInput.addEventListener('input', (e) => {
-        if (selectedLayer?.type === 'text') {
-            selectedLayer.lineHeight = parseFloat(e.target.value);
-            drawCanvas();
-        }
-    });
-    imageScaleInput.addEventListener('input', (e) => {
-        if (selectedLayer?.type === 'image') {
-            const scale = parseInt(e.target.value) / 100;
-            const originalWidth = selectedLayer.img.naturalWidth;
-            const originalHeight = selectedLayer.img.naturalHeight;
-            selectedLayer.width = originalWidth * scale;
-            selectedLayer.height = originalHeight * scale;
-            drawCanvas();
-        }
-    });
-
-    deleteLayerBtn.addEventListener('click', () => {
-        if (selectedLayer) {
-            layers = layers.filter(l => l.id !== selectedLayer.id);
-            layerList.innerHTML = '';
-            layers.forEach(addLayerToList);
-            deselectAll();
-            if (layers.length === 0) {
-                layersSection.classList.add('hidden');
-            }
-        }
-    });
-    
-    aspectRatioContainer.addEventListener('click', (e) => {
-        const button = e.target.closest('.ratio-btn');
-        if (!button) return;
-        currentAspectRatio = button.dataset.ratio;
-        document.querySelectorAll('.ratio-btn').forEach(btn => btn.classList.remove('active-btn'));
-        button.classList.add('active-btn');
-        setCanvasSize();
-    });
-
-    // [FIX] Re-added the missing event listener for the Add Image button
-    addImageInput.addEventListener('change', (e) => {
+    // Input Listeners
+    addTextBtn.onclick = () => createLayer('text');
+    addImageInput.onchange = (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = (event) => createLayer('image', event.target.result);
+            reader.onload = (ev) => createLayer('image', ev.target.result);
             reader.readAsDataURL(file);
         }
-    });
+    };
+    
+    textContentInput.oninput = (e) => { if (selectedLayer) { selectedLayer.content = e.target.value; drawCanvas(); } };
+    textSizeInput.oninput = (e) => { if (selectedLayer) { selectedLayer.fontSize = parseInt(e.target.value); sizeVal.innerText = `${e.target.value}px`; drawCanvas(); } };
+    textColorInput.oninput = (e) => { if (selectedLayer) { selectedLayer.color = e.target.value; drawCanvas(); } };
+    fontFamilyInput.onchange = (e) => { if (selectedLayer) { selectedLayer.fontFamily = e.target.value; drawCanvas(); } };
+    opacityInput.oninput = (e) => { if (selectedLayer) { selectedLayer.opacity = parseFloat(e.target.value); drawCanvas(); } };
+    rotateInput.oninput = (e) => { if (selectedLayer) { selectedLayer.rotation = parseInt(e.target.value); drawCanvas(); } };
+    fillColorInput.oninput = (e) => { if (selectedLayer) { selectedLayer.color = e.target.value; drawCanvas(); } };
+    
+    imageScaleInput.oninput = (e) => {
+        if (selectedLayer && selectedLayer.type === 'image') {
+            const s = parseInt(e.target.value) / 100;
+            selectedLayer.width = selectedLayer.img.naturalWidth * s;
+            selectedLayer.height = selectedLayer.img.naturalHeight * s;
+            scaleVal.innerText = `${e.target.value}%`;
+            drawCanvas();
+        }
+    };
 
+    filterBrightness.oninput = (e) => { if (selectedLayer) { selectedLayer.brightness = e.target.value; drawCanvas(); } };
+    filterContrast.oninput = (e) => { if (selectedLayer) { selectedLayer.contrast = e.target.value; drawCanvas(); } };
+    filterGrayscale.onchange = (e) => { if (selectedLayer) { selectedLayer.grayscale = e.target.checked; drawCanvas(); } };
+    filterSepia.onchange = (e) => { if (selectedLayer) { selectedLayer.sepia = e.target.checked; drawCanvas(); } };
+
+    bgColorInput.oninput = (e) => { canvasBg = e.target.value; drawCanvas(); };
+    bgTransparentBtn.onclick = () => { canvasBg = null; drawCanvas(); };
+    guideToggle.onchange = () => drawCanvas();
+    
+    deleteLayerBtn.onclick = () => {
+        layers = layers.filter(l => l.id !== selectedLayer.id);
+        selectedLayer = null;
+        updateControls();
+        renderLayerList();
+        drawCanvas();
+    };
+
+    aspectRatioContainer.onclick = (e) => {
+        const btn = e.target.closest('.ratio-btn');
+        if (!btn) return;
+        currentAspectRatio = btn.dataset.ratio;
+        document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active-ratio'));
+        btn.classList.add('active-ratio');
+        setCanvasSize();
+    };
+
+    exportBtn.onclick = () => {
+        const prevSelected = selectedLayer;
+        // Keep guideToggle state as is, but hide selection handles
+        selectedLayer = null; 
+        
+        // Draw one frame specifically for exporting (isExporting = true)
+        drawCanvas(true).then(() => {
+            const link = document.createElement('a');
+            link.download = `TenacityPro_${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+            
+            // Restore selection handles after download trigger
+            selectedLayer = prevSelected;
+            drawCanvas();
+        });
+    };
+
+    function wrapText(text, maxWidth) {
+        const words = text.split(' ');
+        const lines = [];
+        let cur = words[0] || '';
+        for (let i = 1; i < words.length; i++) {
+            if (ctx.measureText(cur + ' ' + words[i]).width > maxWidth) { lines.push(cur); cur = words[i]; }
+            else cur += ' ' + words[i];
+        }
+        lines.push(cur);
+        return lines;
+    }
+
+    canvas.onmousedown = handleStart;
+    window.onmousemove = handleMove;
+    window.onmouseup = () => { isDragging = false; isResizing = false; };
+    canvas.ontouchstart = (e) => { handleStart(e); e.preventDefault(); };
+    window.ontouchmove = handleMove;
+
+    window.onload = () => {
+        setCanvasSize();
+        overlays.post.onload = () => drawCanvas();
+        overlays.reel.onload = () => drawCanvas();
+    };
     </script>
 </body>
 </html>
