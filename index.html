@@ -2,733 +2,722 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenacity Branding Studio Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tenacity Locks Survey</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&family=Inter:wght@400;700&family=Playfair+Display:wght@700&family=Roboto+Mono&family=Lobster&family=Pacifico&display=swap" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         :root {
-            --brand-primary: #981491; 
-            --brand-secondary: #4f114b;
+            --brand-purple: #4a0c47;
+            --brand-purple-light: #871881;
+            --brand-purple-dark: #2a0429;
+            --brand-yellow: #ffe800;
+            --brand-yellow-hover: #ffc400;
+            --whatsapp-green: #25d366;
         }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5;
-            color: #111827;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(-45deg, var(--brand-purple-dark), var(--brand-purple), var(--brand-purple-light), var(--brand-purple));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            /* Kiosk touch optimizations */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; /* Prevents double-tap zoom */
         }
-        .gradient-text {
-            background: linear-gradient(to right, var(--brand-primary), #4f114b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
+
+        /* Hide scrollbar but keep functionality */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+
         .glass-panel {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
-        #canvas-container { 
-            width: 100%; 
-            max-width: 500px; 
-            transition: aspect-ratio 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+        .option-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-align: center;
+            height: 100%;
             position: relative;
-            background: #fff;
-            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15);
-            border-radius: 12px;
             overflow: hidden;
         }
-        #canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-            touch-action: none;
-        }
-        .active-ratio {
-            background-color: var(--brand-primary) !important;
-            color: #ffffff !important;
-            border-color: var(--brand-primary) !important;
-        }
-        input[type="range"] {
-            accent-color: var(--brand-primary);
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
-        
-        /* Tooltip style */
-        .tool-btn { position: relative; }
-        .tool-btn:hover::after {
-            content: attr(data-tip);
+
+        .option-card::before {
+            content: '';
             position: absolute;
-            bottom: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1f2937;
-            color: white;
-            font-size: 10px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            white-space: nowrap;
-            z-index: 50;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,232,0,0.2) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
+
+        .option-card:active {
+            transform: scale(0.92);
+        }
+
+        /* Selected State for Multi-Select */
+        .option-card.selected {
+            background: rgba(255, 232, 0, 0.1);
+            border-color: var(--brand-yellow);
+            box-shadow: 0 10px 30px rgba(255, 232, 0, 0.2), inset 0 0 15px rgba(255, 232, 0, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .option-card.selected::before { opacity: 1; }
+        .option-card.selected .icon-container { color: var(--brand-yellow); transform: scale(1.15); }
+        .option-card.selected .option-text { color: #fff; font-weight: 600; }
+        
+        .check-indicator {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            color: var(--brand-yellow);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .option-card.selected .check-indicator {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .icon-container {
+            font-size: 3.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .option-text {
+            font-size: 1.3rem;
+            font-weight: 400;
+            line-height: 1.3;
+            color: rgba(255, 255, 255, 0.9);
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .expandable-section {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+        }
+
+        .expandable-section.show {
+            grid-template-rows: 1fr;
+        }
+
+        .expandable-content {
+            overflow: hidden;
+        }
+
+        .input-group {
+            position: relative;
+            width: 100%;
+            margin-bottom: 1.2rem;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.4rem;
+            color: rgba(255, 255, 255, 0.5);
+            transition: color 0.3s ease;
+        }
+
+        .custom-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 1.25rem 1.25rem 1.25rem 4rem;
+            font-size: 1.25rem;
+            color: white;
+            outline: none;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .custom-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+
+        .custom-input:focus {
+            border-color: var(--brand-yellow);
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 20px rgba(255, 232, 0, 0.15);
+        }
+
+        .custom-input:focus + i, .custom-input:not(:placeholder-shown) + i {
+            color: var(--brand-yellow);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--brand-yellow), var(--brand-yellow-hover));
+            color: var(--brand-purple-dark);
+            border: none;
+            border-radius: 9999px;
+            padding: 1.25rem 3rem;
+            font-size: 1.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 30px -5px rgba(255, 232, 0, 0.5);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+            pointer-events: none;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .submit-btn.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .submit-btn.active:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 40px -5px rgba(255, 232, 0, 0.6);
+        }
+
+        .submit-btn.active:active {
+            transform: translateY(2px) scale(0.95);
+        }
+
+        .success-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .success-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .check-circle-wrapper {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin-bottom: 2rem;
+        }
+
+        .check-circle {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: var(--whatsapp-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: white;
+            transform: scale(0);
+            box-shadow: 0 20px 50px rgba(37, 211, 102, 0.4);
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 2;
+        }
+
+        .success-overlay.show .check-circle { transform: scale(1); }
+
+        .pulse-ring {
+            position: absolute;
+            inset: -20px;
+            border-radius: 50%;
+            border: 4px solid var(--whatsapp-green);
+            opacity: 0;
+            animation: none;
+            z-index: 1;
+        }
+
+        .success-overlay.show .pulse-ring {
+            animation: pulseOut 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+            animation-delay: 0.6s;
+        }
+
+        @keyframes pulseOut {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Toast Notification */
+        #toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: white;
+            color: #333;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 100;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* Fullscreen button */
+        .fs-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2);
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s;
+        }
+        .fs-btn:hover { background: rgba(255,255,255,0.2); }
     </style>
 </head>
-<body class="flex flex-col items-center min-h-screen p-4 md:p-8">
+<body>
 
-    <div class="w-full max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-            <div class="text-center md:text-left">
-                <h1 class="text-3xl md:text-4xl font-black gradient-text tracking-tighter uppercase leading-none">Tenacity Studio</h1>
-                <p class="text-gray-400 text-sm font-semibold tracking-widest mt-1 uppercase">Pro Creative Engine</p>
-            </div>
+    <button class="fs-btn" onclick="toggleFullScreen()" title="Toggle Fullscreen">
+        <i class="fa-solid fa-expand" id="fs-icon"></i>
+    </button>
+
+    <!-- Toast for admin messages -->
+    <div id="toast"><i class="fa-solid fa-download text-green-500 mr-2"></i> Session data exported!</div>
+
+    <div class="flex-grow flex flex-col items-center justify-start p-4 sm:p-8 w-full max-w-[1400px] mx-auto overflow-y-auto no-scrollbar pb-32">
+        
+        <!-- Header with Logo -->
+        <div class="text-center mb-8 w-full flex flex-col items-center mt-4">
+            <img 
+                src="https://tenacitylockslimited.com/assets/images/logos/white-logo.png" 
+                alt="Tenacity Locks" 
+                class="h-16 md:h-24 object-contain mb-6 drop-shadow-2xl cursor-pointer"
+                id="logoImg"
+                title="Tap 5 times to download session data"
+            >
+            <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight drop-shadow-lg">
+                How did you hear about us? <span class="text-[#ffe800]">*</span>
+            </h1>
+            <p class="text-slate-300 mt-3 text-lg md:text-xl font-light">Select all that apply</p>
+        </div>
+
+        <!-- Responsive touch-target grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 w-full mb-8" id="optionsContainer">
+            <!-- Cards rendered by JS -->
+        </div>
+
+        <div class="w-full max-w-4xl flex flex-col items-center">
             
-            <div class="flex gap-2">
-                <button id="exportBtn" class="bg-black hover:bg-purple-900 text-white font-bold py-3 px-6 rounded-2xl transition-all shadow-xl flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                    Export
+            <!-- Other Input Section -->
+            <div id="otherInputSection" class="expandable-section w-full">
+                <div class="expandable-content pt-2 pb-6 w-full flex justify-center">
+                    <div class="w-full md:w-3/4">
+                        <div class="input-group">
+                            <input type="text" id="otherTextInput" class="custom-input" placeholder="Please specify..." autocomplete="off">
+                            <i class="fa-solid fa-pen"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Section -->
+            <div id="contactSection" class="expandable-section w-full">
+                <div class="expandable-content w-full pb-8">
+                    <div class="glass-panel rounded-3xl p-6 md:p-10 w-full">
+                        <h3 class="text-2xl md:text-3xl font-semibold mb-2 text-center text-[#ffe800]">Almost Done!</h3>
+                        <p class="text-center text-slate-300 mb-8 font-light">Leave your details for exclusive offers <span class="opacity-60">(Optional)</span></p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
+                            <div class="input-group md:col-span-2">
+                                <input type="text" id="nameInput" class="custom-input" placeholder="Full Name" autocomplete="off">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div class="input-group">
+                                <input type="tel" id="phoneInput" class="custom-input" placeholder="Phone Number" autocomplete="off">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div class="input-group">
+                                <input type="email" id="emailInput" class="custom-input" placeholder="Email Address" autocomplete="off">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-4 flex justify-center w-full">
+                <button id="submitBtn" class="submit-btn" onclick="submitSurvey()">
+                    <span>Submit</span>
+                    <i class="fa-solid fa-paper-plane"></i>
                 </button>
-            </div>
-        </header>
-
-        <div class="flex flex-col lg:flex-row gap-8 items-start justify-center">
-
-            <!-- Left Toolset -->
-            <div class="w-full lg:w-80 flex-shrink-0 space-y-4 order-2 lg:order-1">
-                
-                <!-- Background & Canvas -->
-                <div class="glass-panel rounded-2xl p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <h2 class="text-xs font-black uppercase text-gray-400 tracking-widest">Canvas</h2>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <span class="text-[10px] font-bold text-gray-500 uppercase">Guides</span>
-                            <input type="checkbox" id="guideToggle" checked class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                        </label>
-                    </div>
-                    <div id="aspectRatioContainer" class="grid grid-cols-2 gap-2 mb-4">
-                        <button class="ratio-btn border border-gray-200 rounded-xl py-2 text-xs font-bold transition active-ratio" data-ratio="4:5">POST</button>
-                        <button class="ratio-btn border border-gray-200 rounded-xl py-2 text-xs font-bold transition" data-ratio="9:16">STORY</button>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-400 mb-2 uppercase">Background Color</label>
-                        <div class="flex items-center gap-2">
-                            <input type="color" id="bgColorInput" value="#ffffff" class="w-full h-8 rounded-lg cursor-pointer border-none bg-transparent">
-                            <button id="bgTransparentBtn" class="text-[10px] font-bold text-purple-600 uppercase hover:underline">Clear</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Element Library -->
-                <div class="glass-panel rounded-2xl p-4">
-                    <h2 class="text-xs font-black uppercase text-gray-400 tracking-widest mb-3">Insert</h2>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button id="addTextBtn" class="flex flex-col items-center justify-center py-3 bg-white border border-gray-100 rounded-xl hover:border-purple-300 transition group">
-                            <svg class="text-gray-400 group-hover:text-purple-600 mb-1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
-                            <span class="text-[10px] font-bold text-gray-600">TEXT</span>
-                        </button>
-                        <label for="addImageInput" class="flex flex-col items-center justify-center py-3 bg-white border border-gray-100 rounded-xl hover:border-purple-300 transition group cursor-pointer">
-                            <svg class="text-gray-400 group-hover:text-purple-600 mb-1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                            <span class="text-[10px] font-bold text-gray-600">IMAGE</span>
-                        </label>
-                        <button onclick="createLayer('shape', 'rect')" class="flex flex-col items-center justify-center py-3 bg-white border border-gray-100 rounded-xl hover:border-purple-300 transition group">
-                            <svg class="text-gray-400 group-hover:text-purple-600 mb-1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
-                            <span class="text-[10px] font-bold text-gray-600">RECT</span>
-                        </button>
-                        <button onclick="createLayer('shape', 'circle')" class="flex flex-col items-center justify-center py-3 bg-white border border-gray-100 rounded-xl hover:border-purple-300 transition group">
-                            <svg class="text-gray-400 group-hover:text-purple-600 mb-1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
-                            <span class="text-[10px] font-bold text-gray-600">CIRCLE</span>
-                        </button>
-                        <input type="file" id="addImageInput" class="hidden" accept="image/*">
-                    </div>
-                </div>
-
-                <!-- Layer List -->
-                <div id="layers-section" class="glass-panel rounded-2xl p-4 hidden">
-                    <h2 class="text-xs font-black uppercase text-gray-400 tracking-widest mb-3">Layers</h2>
-                    <ul id="layerList" class="space-y-1 max-h-40 overflow-y-auto custom-scrollbar"></ul>
-                </div>
-            </div>
-
-            <!-- Preview Section -->
-            <div class="w-full flex-grow flex flex-col items-center order-1 lg:order-2">
-                <div id="canvas-container" style="aspect-ratio: 4 / 5;">
-                    <canvas id="canvas"></canvas>
-                </div>
-                <div class="flex gap-8 mt-6">
-                    <div class="text-center">
-                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Position</p>
-                        <p id="posDisplay" class="text-xs font-mono text-gray-500">0, 0</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Dimensions</p>
-                        <p id="dimDisplay" class="text-xs font-mono text-gray-500">1080 x 1350</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Editor Panel -->
-            <div id="layer-controls" class="w-full lg:w-80 flex-shrink-0 space-y-4 order-3 hidden">
-                <div class="glass-panel rounded-2xl p-5">
-                    <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
-                        <h2 class="text-xs font-black uppercase text-gray-400 tracking-widest">Layer Properties</h2>
-                        <button id="deleteLayerBtn" class="text-red-400 hover:text-red-600 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                        </button>
-                    </div>
-
-                    <!-- Common Controls -->
-                    <div class="space-y-4 mb-6">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Opacity</label>
-                                <input type="range" id="opacityInput" min="0" max="1" step="0.05" value="1" class="w-full">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Rotate</label>
-                                <input type="range" id="rotateInput" min="0" max="360" value="0" class="w-full">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Text Specific -->
-                    <div id="text-controls" class="hidden space-y-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-tighter">Content</label>
-                            <textarea id="textContentInput" rows="2" class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none resize-none font-medium"></textarea>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Font</label>
-                                <select id="fontFamilyInput" class="w-full border border-gray-200 rounded-xl p-2 text-xs bg-white font-bold">
-                                    <option value="Poppins">Poppins</option>
-                                    <option value="Inter">Inter</option>
-                                    <option value="Playfair Display">Playfair</option>
-                                    <option value="Roboto Mono">Mono</option>
-                                    <option value="Lobster">Lobster</option>
-                                    <option value="Pacifico">Pacifico</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Color</label>
-                                <input type="color" id="textColorInput" class="w-full h-8 rounded-lg cursor-pointer border-none bg-transparent">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase flex justify-between">Size <span id="sizeVal" class="text-purple-600">48px</span></label>
-                            <input type="range" id="textSizeInput" min="10" max="500" value="48" class="w-full">
-                        </div>
-                    </div>
-
-                    <!-- Image & Shape Color -->
-                    <div id="color-controls" class="hidden space-y-4 mt-4">
-                         <div>
-                            <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Fill Color</label>
-                            <input type="color" id="fillColorInput" class="w-full h-8 rounded-lg cursor-pointer border-none bg-transparent">
-                        </div>
-                    </div>
-
-                    <!-- Image Specific -->
-                    <div id="image-controls" class="hidden space-y-4 mt-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase flex justify-between">Scale <span id="scaleVal" class="text-purple-600">100%</span></label>
-                            <input type="range" id="imageScaleInput" min="5" max="300" value="100" class="w-full">
-                        </div>
-                        <div class="pt-4 border-t border-gray-100">
-                             <h3 class="text-[10px] font-black uppercase text-gray-400 mb-3">Filters</h3>
-                             <div class="grid grid-cols-1 gap-3">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-gray-500 mb-1">Brightness</label>
-                                    <input type="range" id="filterBrightness" min="0" max="200" value="100" class="w-full">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-gray-500 mb-1">Contrast</label>
-                                    <input type="range" id="filterContrast" min="0" max="200" value="100" class="w-full">
-                                </div>
-                                <div class="flex gap-4">
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" id="filterGrayscale" class="rounded text-purple-600">
-                                        <span class="text-[10px] font-bold text-gray-500 uppercase">Gray</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" id="filterSepia" class="rounded text-purple-600">
-                                        <span class="text-[10px] font-bold text-gray-500 uppercase">Sepia</span>
-                                    </label>
-                                </div>
-                             </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
-    
-    <footer class="mt-auto py-8">
-        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest text-center">
-            Tenacity Studio Pro &bull; Design by <a href="https://sirnewson.com" target="_blank" class="text-purple-500 hover:text-black transition underline decoration-2 underline-offset-4">Sir Newson</a>
+
+    <div id="successOverlay" class="success-overlay">
+        <div class="check-circle-wrapper">
+            <div class="pulse-ring"></div>
+            <div class="check-circle">
+                <i class="fa-solid fa-check"></i>
+            </div>
+        </div>
+        <h2 class="text-5xl md:text-7xl font-bold mb-4 text-center text-white drop-shadow-lg">Thank You!</h2>
+        <p class="text-2xl md:text-3xl text-slate-200 text-center max-w-3xl px-4 font-light drop-shadow-md">
+            We truly appreciate your feedback.
         </p>
-    </footer>
+        <p class="text-xl text-[#ffe800] mt-12 font-medium">
+            Resetting in <span id="resetTimer" class="font-bold text-2xl">5</span>...
+        </p>
+    </div>
 
     <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const canvasContainer = document.getElementById('canvas-container');
-    const aspectRatioContainer = document.getElementById('aspectRatioContainer');
-    const addTextBtn = document.getElementById('addTextBtn');
-    const addImageInput = document.getElementById('addImageInput');
-    const exportBtn = document.getElementById('exportBtn');
-    const guideToggle = document.getElementById('guideToggle');
-    const bgColorInput = document.getElementById('bgColorInput');
-    const bgTransparentBtn = document.getElementById('bgTransparentBtn');
-    
-    const layerControls = document.getElementById('layer-controls');
-    const textControls = document.getElementById('text-controls');
-    const imageControls = document.getElementById('image-controls');
-    const colorControls = document.getElementById('color-controls');
-    
-    const textContentInput = document.getElementById('textContentInput');
-    const textSizeInput = document.getElementById('textSizeInput');
-    const textColorInput = document.getElementById('textColorInput');
-    const fontFamilyInput = document.getElementById('fontFamilyInput');
-    const opacityInput = document.getElementById('opacityInput');
-    const rotateInput = document.getElementById('rotateInput');
-    const fillColorInput = document.getElementById('fillColorInput');
-    const imageScaleInput = document.getElementById('imageScaleInput');
-    const scaleVal = document.getElementById('scaleVal');
-    
-    const filterBrightness = document.getElementById('filterBrightness');
-    const filterContrast = document.getElementById('filterContrast');
-    const filterGrayscale = document.getElementById('filterGrayscale');
-    const filterSepia = document.getElementById('filterSepia');
-    
-    const deleteLayerBtn = document.getElementById('deleteLayerBtn');
-    const layerList = document.getElementById('layerList');
-    const layersSection = document.getElementById('layers-section');
-    const posDisplay = document.getElementById('posDisplay');
-    const dimDisplay = document.getElementById('dimDisplay');
+        // Survey Options Data
+        const surveyOptions = [
+            { id: 'tiktok', label: 'Tiktok', icon: 'fa-brands fa-tiktok' },
+            { id: 'facebook', label: 'Facebook', icon: 'fa-brands fa-facebook' },
+            { id: 'instagram', label: 'Instagram', icon: 'fa-brands fa-instagram' },
+            { id: 'google', label: 'Google', icon: 'fa-brands fa-google' },
+            { id: 'return', label: 'Return Customer', icon: 'fa-solid fa-arrow-rotate-left' },
+            { id: 'referral', label: 'Referral', icon: 'fa-solid fa-users' },
+            { id: 'longterm', label: 'Long Term<br><span class="text-sm opacity-70">(> 3 years)</span>', icon: 'fa-solid fa-award' },
+            { id: 'walkin', label: 'Walk In<br><span class="text-sm opacity-70">(Passing by)</span>', icon: 'fa-solid fa-person-walking' },
+            { id: 'other', label: 'Other', icon: 'fa-solid fa-ellipsis' }
+        ];
 
-    let layers = [];
-    let selectedLayer = null;
-    let layerCounter = 0;
-    let isDragging = false;
-    let isResizing = false;
-    let dragStart = { x: 0, y: 0 };
-    let resizeStart = { x: 0, y: 0, width: 0, height: 0 };
-    let canvasBg = '#ffffff';
+        // State Management
+        let selectedOptionIds = new Set();
+        let sessionDataStore = []; // In-memory database
+        let inactivityTimer = null;
+        let logoTapCount = 0;
+        let logoTapTimer = null;
+        const INACTIVITY_TIMEOUT = 120000; // 2 minutes
 
-    const overlays = {
-        post: new Image(),
-        reel: new Image()
-    };
-    overlays.post.crossOrigin = "anonymous";
-    overlays.reel.crossOrigin = "anonymous";
-    overlays.post.src = 'https://i.ibb.co/MDrxLQxq/post-overlay.png';
-    overlays.reel.src = 'https://i.ibb.co/t5J2Yhg/reeel-overlay.png';
+        // DOM Elements
+        const optionsContainer = document.getElementById('optionsContainer');
+        const otherInputSection = document.getElementById('otherInputSection');
+        const otherTextInput = document.getElementById('otherTextInput');
+        const contactSection = document.getElementById('contactSection');
+        const submitBtn = document.getElementById('submitBtn');
+        const successOverlay = document.getElementById('successOverlay');
+        const resetTimerEl = document.getElementById('resetTimer');
+        const logoImg = document.getElementById('logoImg');
+        const toast = document.getElementById('toast');
 
-    let currentAspectRatio = '4:5';
-
-    // --- Canvas Logic ---
-    function setCanvasSize() {
-        const ratio = currentAspectRatio === '4:5' ? 4/5 : 9/16;
-        canvas.width = 1080;
-        canvas.height = currentAspectRatio === '4:5' ? 1350 : 1920;
-        canvasContainer.style.aspectRatio = ratio;
-        dimDisplay.innerText = `${canvas.width} x ${canvas.height}`;
-        drawCanvas();
-    }
-
-    async function drawCanvas(isExporting = false) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Background
-        if (canvasBg) {
-            ctx.fillStyle = canvasBg;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        function init() {
+            renderOptions();
+            setupEventListeners();
+            resetInactivityTimer();
         }
 
-        // Layers
-        for (const layer of layers) {
-            await drawLayer(layer);
-        }
-
-        // Overlay Guide (PERMANENTLY ON TOP + FULL OPACITY)
-        if (guideToggle.checked) {
-            const overlay = currentAspectRatio === '4:5' ? overlays.post : overlays.reel;
-            if (overlay.complete) {
-                ctx.save();
-                ctx.globalAlpha = 1.0; // FULL OPACITY
-                ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
-                ctx.restore();
-            }
-        }
-
-        // Selection UI (Hide during export)
-        if (selectedLayer && !isExporting) {
-            drawSelectionHandles(selectedLayer);
-            posDisplay.innerText = `${Math.round(selectedLayer.x)}, ${Math.round(selectedLayer.y)}`;
-        } else if (!isExporting) {
-            posDisplay.innerText = "0, 0";
-        }
-    }
-
-    async function drawLayer(layer) {
-        ctx.save();
-        
-        // Transform
-        ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
-        ctx.rotate((layer.rotation || 0) * Math.PI / 180);
-        ctx.globalAlpha = layer.opacity !== undefined ? layer.opacity : 1;
-        ctx.translate(-(layer.x + layer.width / 2), -(layer.y + layer.height / 2));
-
-        if (layer.type === 'image') {
-            if (layer.img && layer.img.complete) {
-                // Apply filters
-                let filters = [];
-                if (layer.brightness !== 100) filters.push(`brightness(${layer.brightness}%)`);
-                if (layer.contrast !== 100) filters.push(`contrast(${layer.contrast}%)`);
-                if (layer.grayscale) filters.push(`grayscale(100%)`);
-                if (layer.sepia) filters.push(`sepia(100%)`);
-                ctx.filter = filters.length ? filters.join(' ') : 'none';
+        function renderOptions() {
+            optionsContainer.innerHTML = '';
+            
+            surveyOptions.forEach(option => {
+                const card = document.createElement('div');
+                card.className = 'option-card';
+                card.id = `opt-${option.id}`;
+                card.onclick = () => toggleOption(option.id);
                 
-                ctx.drawImage(layer.img, layer.x, layer.y, layer.width, layer.height);
-            }
-        } else if (layer.type === 'text') {
-            await document.fonts.load(`700 ${layer.fontSize}px "${layer.fontFamily}"`);
-            ctx.font = `700 ${layer.fontSize}px "${layer.fontFamily}"`;
-            ctx.fillStyle = layer.color;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+                card.innerHTML = `
+                    <div class="check-indicator"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="icon-container">
+                        <i class="${option.icon}"></i>
+                    </div>
+                    <div class="option-text">${option.label}</div>
+                `;
+                
+                optionsContainer.appendChild(card);
+            });
+        }
+
+        function toggleOption(id) {
+            resetInactivityTimer();
             
-            const lines = wrapText(layer.content, layer.width);
-            const totalHeight = lines.length * layer.fontSize * layer.lineHeight;
-            let startY = layer.y + layer.height / 2 - totalHeight / 2 + (layer.fontSize * layer.lineHeight) / 2;
+            // Toggle selection in Set
+            if (selectedOptionIds.has(id)) {
+                selectedOptionIds.delete(id);
+                document.getElementById(`opt-${id}`).classList.remove('selected');
+            } else {
+                selectedOptionIds.add(id);
+                document.getElementById(`opt-${id}`).classList.add('selected');
+            }
+            
+            // Handle "Other" input visibility
+            if (selectedOptionIds.has('other')) {
+                otherInputSection.classList.add('show');
+                // Scroll slightly to ensure it's in view
+                setTimeout(() => {
+                    otherTextInput.focus();
+                    otherTextInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            } else {
+                otherInputSection.classList.remove('show');
+            }
 
-            lines.forEach((line, i) => {
-                ctx.fillText(line, layer.x + layer.width / 2, startY + (i * layer.fontSize * layer.lineHeight));
-            });
-        } else if (layer.type === 'shape') {
-            ctx.fillStyle = layer.color || '#981491';
-            if (layer.shapeType === 'rect') {
-                ctx.fillRect(layer.x, layer.y, layer.width, layer.height);
-            } else if (layer.shapeType === 'circle') {
-                ctx.beginPath();
-                ctx.ellipse(layer.x + layer.width/2, layer.y + layer.height/2, layer.width/2, layer.height/2, 0, 0, 2 * Math.PI);
-                ctx.fill();
+            // Show contact section if AT LEAST ONE option is selected
+            if (selectedOptionIds.size > 0) {
+                contactSection.classList.add('show');
+            } else {
+                contactSection.classList.remove('show');
+            }
+
+            checkSubmitValidity();
+        }
+
+        function checkSubmitValidity() {
+            let isValid = selectedOptionIds.size > 0;
+            
+            // If 'other' is selected, ensure they typed something
+            if (selectedOptionIds.has('other') && otherTextInput.value.trim().length === 0) {
+                isValid = false;
+            }
+            
+            if (isValid) {
+                submitBtn.classList.add('active');
+            } else {
+                submitBtn.classList.remove('active');
             }
         }
-        
-        ctx.restore();
-    }
-    
-    function drawSelectionHandles(layer) {
-        ctx.save();
-        ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
-        ctx.rotate((layer.rotation || 0) * Math.PI / 180);
-        ctx.translate(-(layer.x + layer.width / 2), -(layer.y + layer.height / 2));
 
-        ctx.strokeStyle = '#981491';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([8, 8]);
-        ctx.strokeRect(layer.x, layer.y, layer.width, layer.height);
-        
-        // Resize handle
-        ctx.setLineDash([]);
-        ctx.fillStyle = '#981491';
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(layer.x + layer.width, layer.y + layer.height, 14, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-    }
-
-    // --- Layer Operations ---
-    function createLayer(type, subtype) {
-        layerCounter++;
-        const layerId = `layer-${layerCounter}`;
-        let layerData = {
-            id: layerId, type, rotation: 0, opacity: 1, 
-            x: canvas.width / 2 - 150, y: canvas.height / 2 - 150,
-            width: 300, height: 300
-        };
-
-        if (type === 'text') {
-            Object.assign(layerData, {
-                content: subtype || 'Brand Text',
-                fontSize: 80, fontFamily: 'Poppins', color: '#000000', lineHeight: 1.1,
-                width: 600, height: 160, x: (canvas.width - 600) / 2
+        function setupEventListeners() {
+            // Validate on typing
+            otherTextInput.addEventListener('input', () => {
+                resetInactivityTimer();
+                checkSubmitValidity();
             });
-        } else if (type === 'image') {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.src = subtype;
-            Object.assign(layerData, { 
-                img, brightness: 100, contrast: 100, grayscale: false, sepia: false 
+
+            // Auto-scroll for touch keyboards
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    setTimeout(() => {
+                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                });
+                input.addEventListener('input', resetInactivityTimer);
             });
-            img.onload = () => {
-                const s = Math.min(600 / img.naturalWidth, 600 / img.naturalHeight);
-                layerData.width = img.naturalWidth * s;
-                layerData.height = img.naturalHeight * s;
-                layerData.x = (canvas.width - layerData.width) / 2;
-                layerData.y = (canvas.height - layerData.height) / 2;
-                drawCanvas();
-            };
-        } else if (type === 'shape') {
-            Object.assign(layerData, {
-                shapeType: subtype, color: '#981491', width: 400, height: 400,
-                x: (canvas.width - 400) / 2, y: (canvas.height - 400) / 2
+
+            // Global activity tracking
+            ['touchstart', 'mousemove', 'keypress', 'click'].forEach(evt => {
+                document.addEventListener(evt, resetInactivityTimer);
             });
-        }
-        
-        layers.push(layerData);
-        selectLayer(layerData);
-        renderLayerList();
-    }
 
-    function renderLayerList() {
-        if (!layers.length) { layersSection.classList.add('hidden'); return; }
-        layersSection.classList.remove('hidden');
-        layerList.innerHTML = '';
-        [...layers].reverse().forEach((layer, idx) => {
-            const actualIdx = layers.indexOf(layer);
-            const li = document.createElement('li');
-            li.className = `flex items-center justify-between p-2 rounded-lg border text-[10px] font-bold cursor-pointer transition ${selectedLayer?.id === layer.id ? 'bg-purple-50 border-purple-200 text-purple-700' : 'bg-white border-gray-100 text-gray-500'}`;
-            li.onclick = (e) => { if (!e.target.closest('.l-btn')) selectLayer(layer); };
-            li.innerHTML = `
-                <span class="truncate pr-2 uppercase">${layer.type === 'text' ? layer.content.substring(0,10) : layer.type}</span>
-                <div class="flex gap-1">
-                    <button class="l-btn hover:text-purple-900" onclick="moveLayer(${actualIdx}, 1)">▲</button>
-                    <button class="l-btn hover:text-purple-900" onclick="moveLayer(${actualIdx}, -1)">▼</button>
-                </div>
-            `;
-            layerList.appendChild(li);
-        });
-    }
-
-    window.moveLayer = (idx, dir) => {
-        const target = idx + dir;
-        if (target >= 0 && target < layers.length) {
-            const item = layers.splice(idx, 1)[0];
-            layers.splice(target, 0, item);
-            renderLayerList();
-            drawCanvas();
-        }
-    };
-
-    // --- Events ---
-    function getMousePos(e) {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
-    }
-
-    function handleStart(e) {
-        const pos = getMousePos(e);
-        
-        if (selectedLayer) {
-            const dist = Math.sqrt((pos.x - (selectedLayer.x + selectedLayer.width))**2 + (pos.y - (selectedLayer.y + selectedLayer.height))**2);
-            if (dist < 40) { isResizing = true; resizeStart = { x: pos.x, y: pos.y, w: selectedLayer.width, h: selectedLayer.height }; return; }
+            // Secret Admin Feature: Tap logo to export data
+            logoImg.addEventListener('click', handleLogoTap);
         }
 
-        const target = getLayerAtPos(pos);
-        if (target) {
-            isDragging = true;
-            selectLayer(target);
-            dragStart = { x: pos.x - target.x, y: pos.y - target.y };
-        } else {
-            selectedLayer = null;
-            updateControls();
-            renderLayerList();
-            drawCanvas();
-        }
-    }
-
-    function getLayerAtPos(pos) {
-        for (let i = layers.length - 1; i >= 0; i--) {
-            const l = layers[i];
-            const cx = l.x + l.width / 2;
-            const cy = l.y + l.height / 2;
-            const rad = -(l.rotation || 0) * Math.PI / 180;
-            const rx = Math.cos(rad) * (pos.x - cx) - Math.sin(rad) * (pos.y - cy) + cx;
-            const ry = Math.sin(rad) * (pos.x - cx) + Math.cos(rad) * (pos.y - cy) + cy;
-            if (rx >= l.x && rx <= l.x + l.width && ry >= l.y && ry <= l.y + l.height) return l;
-        }
-        return null;
-    }
-
-    function handleMove(e) {
-        if (!isDragging && !isResizing) return;
-        const pos = getMousePos(e);
-        if (isDragging && selectedLayer) {
-            selectedLayer.x = pos.x - dragStart.x;
-            selectedLayer.y = pos.y - dragStart.y;
-        } else if (isResizing && selectedLayer) {
-            selectedLayer.width = Math.max(20, resizeStart.w + (pos.x - resizeStart.x));
-            selectedLayer.height = Math.max(20, resizeStart.h + (pos.y - resizeStart.y));
-            if(selectedLayer.type === 'image') updateControls(); // Sync slider while dragging handles
-        }
-        drawCanvas();
-    }
-
-    // Keyboard Shortcuts
-    window.addEventListener('keydown', (e) => {
-        if (!selectedLayer || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
-        const step = e.shiftKey ? 10 : 1;
-        if (e.key === 'ArrowUp') selectedLayer.y -= step;
-        else if (e.key === 'ArrowDown') selectedLayer.y += step;
-        else if (e.key === 'ArrowLeft') selectedLayer.x -= step;
-        else if (e.key === 'ArrowRight') selectedLayer.x += step;
-        else if (e.key === 'Delete' || e.key === 'Backspace') deleteLayerBtn.click();
-        drawCanvas();
-    });
-
-    // Control Updates
-    function selectLayer(layer) {
-        selectedLayer = layer;
-        updateControls();
-        renderLayerList();
-        drawCanvas();
-    }
-
-    function updateControls() {
-        if (!selectedLayer) { layerControls.classList.add('hidden'); return; }
-        layerControls.classList.remove('hidden');
-        
-        opacityInput.value = selectedLayer.opacity;
-        rotateInput.value = selectedLayer.rotation;
-
-        if (selectedLayer.type === 'text') {
-            textControls.classList.remove('hidden');
-            imageControls.classList.add('hidden');
-            colorControls.classList.add('hidden');
-            textContentInput.value = selectedLayer.content;
-            textSizeInput.value = selectedLayer.fontSize;
-            sizeVal.innerText = `${selectedLayer.fontSize}px`;
-            textColorInput.value = selectedLayer.color;
-            fontFamilyInput.value = selectedLayer.fontFamily;
-        } else if (selectedLayer.type === 'image') {
-            textControls.classList.add('hidden');
-            imageControls.classList.remove('hidden');
-            colorControls.classList.add('hidden');
+        function handleLogoTap() {
+            logoTapCount++;
+            clearTimeout(logoTapTimer);
             
-            // Handle scale slider sync
-            const currentScale = Math.round((selectedLayer.width / selectedLayer.img.naturalWidth) * 100);
-            imageScaleInput.value = currentScale;
-            scaleVal.innerText = `${currentScale}%`;
-
-            filterBrightness.value = selectedLayer.brightness;
-            filterContrast.value = selectedLayer.contrast;
-            filterGrayscale.checked = selectedLayer.grayscale;
-            filterSepia.checked = selectedLayer.sepia;
-        } else if (selectedLayer.type === 'shape') {
-            textControls.classList.add('hidden');
-            imageControls.classList.add('hidden');
-            colorControls.classList.remove('hidden');
-            fillColorInput.value = selectedLayer.color;
+            if (logoTapCount >= 5) {
+                exportLocalData();
+                logoTapCount = 0;
+            } else {
+                logoTapTimer = setTimeout(() => { logoTapCount = 0; }, 1000); // Reset count after 1s
+            }
         }
-    }
 
-    // Input Listeners
-    addTextBtn.onclick = () => createLayer('text');
-    addImageInput.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => createLayer('image', ev.target.result);
-            reader.readAsDataURL(file);
-        }
-    };
-    
-    textContentInput.oninput = (e) => { if (selectedLayer) { selectedLayer.content = e.target.value; drawCanvas(); } };
-    textSizeInput.oninput = (e) => { if (selectedLayer) { selectedLayer.fontSize = parseInt(e.target.value); sizeVal.innerText = `${e.target.value}px`; drawCanvas(); } };
-    textColorInput.oninput = (e) => { if (selectedLayer) { selectedLayer.color = e.target.value; drawCanvas(); } };
-    fontFamilyInput.onchange = (e) => { if (selectedLayer) { selectedLayer.fontFamily = e.target.value; drawCanvas(); } };
-    opacityInput.oninput = (e) => { if (selectedLayer) { selectedLayer.opacity = parseFloat(e.target.value); drawCanvas(); } };
-    rotateInput.oninput = (e) => { if (selectedLayer) { selectedLayer.rotation = parseInt(e.target.value); drawCanvas(); } };
-    fillColorInput.oninput = (e) => { if (selectedLayer) { selectedLayer.color = e.target.value; drawCanvas(); } };
-    
-    imageScaleInput.oninput = (e) => {
-        if (selectedLayer && selectedLayer.type === 'image') {
-            const s = parseInt(e.target.value) / 100;
-            selectedLayer.width = selectedLayer.img.naturalWidth * s;
-            selectedLayer.height = selectedLayer.img.naturalHeight * s;
-            scaleVal.innerText = `${e.target.value}%`;
-            drawCanvas();
-        }
-    };
+        function exportLocalData() {
+            if (sessionDataStore.length === 0) {
+                showToast("No data to export yet!");
+                return;
+            }
 
-    filterBrightness.oninput = (e) => { if (selectedLayer) { selectedLayer.brightness = e.target.value; drawCanvas(); } };
-    filterContrast.oninput = (e) => { if (selectedLayer) { selectedLayer.contrast = e.target.value; drawCanvas(); } };
-    filterGrayscale.onchange = (e) => { if (selectedLayer) { selectedLayer.grayscale = e.target.checked; drawCanvas(); } };
-    filterSepia.onchange = (e) => { if (selectedLayer) { selectedLayer.sepia = e.target.checked; drawCanvas(); } };
+            // Convert JSON array to CSV string
+            const headers = ['Date', 'Sources', 'Other Details', 'Name', 'Phone', 'Email'];
+            const csvRows = [headers.join(',')];
 
-    bgColorInput.oninput = (e) => { canvasBg = e.target.value; drawCanvas(); };
-    bgTransparentBtn.onclick = () => { canvasBg = null; drawCanvas(); };
-    guideToggle.onchange = () => drawCanvas();
-    
-    deleteLayerBtn.onclick = () => {
-        layers = layers.filter(l => l.id !== selectedLayer.id);
-        selectedLayer = null;
-        updateControls();
-        renderLayerList();
-        drawCanvas();
-    };
+            sessionDataStore.forEach(row => {
+                const sourcesStr = `"${row.sources.join(', ')}"`;
+                const otherStr = `"${row.otherText.replace(/"/g, '""')}"`;
+                const nameStr = `"${row.customerName.replace(/"/g, '""')}"`;
+                const phoneStr = `"${row.customerPhone.replace(/"/g, '""')}"`;
+                const emailStr = `"${row.customerEmail.replace(/"/g, '""')}"`;
+                
+                csvRows.push([row.timestamp, sourcesStr, otherStr, nameStr, phoneStr, emailStr].join(','));
+            });
 
-    aspectRatioContainer.onclick = (e) => {
-        const btn = e.target.closest('.ratio-btn');
-        if (!btn) return;
-        currentAspectRatio = btn.dataset.ratio;
-        document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active-ratio'));
-        btn.classList.add('active-ratio');
-        setCanvasSize();
-    };
-
-    exportBtn.onclick = () => {
-        const prevSelected = selectedLayer;
-        // Keep guideToggle state as is, but hide selection handles
-        selectedLayer = null; 
-        
-        // Draw one frame specifically for exporting (isExporting = true)
-        drawCanvas(true).then(() => {
-            const link = document.createElement('a');
-            link.download = `TenacityPro_${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png', 1.0);
+            const csvString = csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `tenacity-survey-${new Date().getTime()}.csv`);
+            document.body.appendChild(link);
             link.click();
-            
-            // Restore selection handles after download trigger
-            selectedLayer = prevSelected;
-            drawCanvas();
-        });
-    };
+            document.body.removeChild(link);
 
-    function wrapText(text, maxWidth) {
-        const words = text.split(' ');
-        const lines = [];
-        let cur = words[0] || '';
-        for (let i = 1; i < words.length; i++) {
-            if (ctx.measureText(cur + ' ' + words[i]).width > maxWidth) { lines.push(cur); cur = words[i]; }
-            else cur += ' ' + words[i];
+            showToast("Session data exported successfully!");
         }
-        lines.push(cur);
-        return lines;
-    }
 
-    canvas.onmousedown = handleStart;
-    window.onmousemove = handleMove;
-    window.onmouseup = () => { isDragging = false; isResizing = false; };
-    canvas.ontouchstart = (e) => { handleStart(e); e.preventDefault(); };
-    window.ontouchmove = handleMove;
+        function showToast(msg) {
+            toast.innerHTML = `<i class="fa-solid fa-info-circle text-blue-500 mr-2"></i> ${msg}`;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
 
-    window.onload = () => {
-        setCanvasSize();
-        overlays.post.onload = () => drawCanvas();
-        overlays.reel.onload = () => drawCanvas();
-    };
+        function submitSurvey() {
+            if (!submitBtn.classList.contains('active')) return;
+            
+            resetInactivityTimer();
+            
+            // Gather Selected Labels
+            const selectedLabels = Array.from(selectedOptionIds).map(id => {
+                const opt = surveyOptions.find(o => o.id === id);
+                return opt.label.replace(/<[^>]*>?/gm, ' ').trim(); // Strip HTML
+            });
+
+            const responseData = {
+                timestamp: new Date().toLocaleString(),
+                sources: selectedLabels,
+                otherText: selectedOptionIds.has('other') ? otherTextInput.value.trim() : '',
+                customerName: document.getElementById('nameInput').value.trim(),
+                customerPhone: document.getElementById('phoneInput').value.trim(),
+                customerEmail: document.getElementById('emailInput').value.trim()
+            };
+
+            // Save to In-Memory Local Database
+            sessionDataStore.push(responseData);
+            console.log("Locally stored response:", responseData);
+
+            showSuccess();
+        }
+
+        function showSuccess() {
+            successOverlay.classList.add('show');
+            
+            let secondsLeft = 5;
+            resetTimerEl.textContent = secondsLeft;
+            
+            const countdown = setInterval(() => {
+                secondsLeft--;
+                resetTimerEl.textContent = secondsLeft;
+                
+                if (secondsLeft <= 0) {
+                    clearInterval(countdown);
+                    resetForm();
+                }
+            }, 1000);
+        }
+
+        function resetForm() {
+            // Reset State
+            selectedOptionIds.clear();
+            
+            // Reset Inputs
+            document.querySelectorAll('input').forEach(input => input.value = '');
+            
+            // Reset UI Visibility
+            document.querySelectorAll('.option-card').forEach(card => card.classList.remove('selected'));
+            otherInputSection.classList.remove('show');
+            contactSection.classList.remove('show');
+            submitBtn.classList.remove('active');
+            successOverlay.classList.remove('show');
+            
+            // Ensure scroll is at top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            if (!successOverlay.classList.contains('show')) {
+                inactivityTimer = setTimeout(() => {
+                    if (selectedOptionIds.size > 0 || otherTextInput.value !== '' || document.getElementById('nameInput').value !== '') {
+                        console.log("Kiosk reset due to inactivity");
+                        resetForm();
+                    }
+                }, INACTIVITY_TIMEOUT);
+            }
+        }
+
+        function toggleFullScreen() {
+            const fsIcon = document.getElementById('fs-icon');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Fullscreen error: ${err.message}`);
+                });
+                fsIcon.classList.replace('fa-expand', 'fa-compress');
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    fsIcon.classList.replace('fa-compress', 'fa-expand');
+                }
+            }
+        }
+
+        // Start App
+        window.onload = init;
+
     </script>
 </body>
 </html>
