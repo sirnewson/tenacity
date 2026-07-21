@@ -1,723 +1,817 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tenacity Locks Survey</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --brand-purple: #4a0c47;
-            --brand-purple-light: #871881;
-            --brand-purple-dark: #2a0429;
-            --brand-yellow: #ffe800;
-            --brand-yellow-hover: #ffc400;
-            --whatsapp-green: #25d366;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Tenacity Branding - Pro Story Builder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bungee&family=Fredoka+One&family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@400;700;900&family=Pacifico&family=Playfair+Display:ital,wght@0,700;1,700&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&family=Poppins:wght@400;700;900&display=swap" rel="stylesheet" />
 
-        body {
-            font-family: 'Outfit', sans-serif;
-            background: linear-gradient(-45deg, var(--brand-purple-dark), var(--brand-purple), var(--brand-purple-light), var(--brand-purple));
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            color: #f8fafc;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-            /* Kiosk touch optimizations */
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation; /* Prevents double-tap zoom */
-        }
+  <style>
+    :root {
+      --brand-blue: #981491;
+      --brand-blue-dark: #630b5e;
+      --brand-accent: #ff47e2;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --soft: #f8fafc;
+      --panel: rgba(255, 255, 255, 0.78);
+      --stroke: rgba(148, 163, 184, 0.22);
+      --shadow: 0 24px 70px rgba(15, 23, 42, 0.10);
+    }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        /* Hide scrollbar but keep functionality */
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      color: var(--ink);
+      touch-action: manipulation;
+      background:
+        radial-gradient(circle at top left, rgba(255, 71, 226, .16), transparent 28rem),
+        radial-gradient(circle at top right, rgba(152, 20, 145, .13), transparent 32rem),
+        linear-gradient(135deg, #fff8fd 0%, #fcecfb 45%, #f8fafc 100%);
+    }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .42;
+      background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M18 20c12 0 12 20 24 20s12-20 24-20 12 20 24 20 12-20 24-20M0 72c12 0 12 20 24 20s12-20 24-20 12 20 24 20 12-20 24-20' stroke='%23981491' stroke-width='1.2' fill='none' opacity='0.13'/%3E%3C/svg%3E");
+      mask-image: linear-gradient(to bottom, black, transparent 82%);
+    }
 
-        .option-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1.5rem;
-            padding: 2rem 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            text-align: center;
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-        }
+    .app-shell { position: relative; z-index: 1; }
 
-        .option-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, rgba(255,232,0,0.2) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
+    .glass-panel {
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,.8);
+      box-shadow: var(--shadow);
+      border-radius: 28px;
+    }
 
-        .option-card:active {
-            transform: scale(0.92);
-        }
+    .panel-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
 
-        /* Selected State for Multi-Select */
-        .option-card.selected {
-            background: rgba(255, 232, 0, 0.1);
-            border-color: var(--brand-yellow);
-            box-shadow: 0 10px 30px rgba(255, 232, 0, 0.2), inset 0 0 15px rgba(255, 232, 0, 0.1);
-            transform: translateY(-5px);
-        }
+    .step-badge {
+      width: 28px; height: 28px; display: grid; place-items: center;
+      border-radius: 999px; background: #fae6fb; color: var(--brand-blue);
+      font-size: 11px; font-weight: 900;
+    }
 
-        .option-card.selected::before { opacity: 1; }
-        .option-card.selected .icon-container { color: var(--brand-yellow); transform: scale(1.15); }
-        .option-card.selected .option-text { color: #fff; font-weight: 600; }
-        
-        .check-indicator {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            font-size: 1.5rem;
-            color: var(--brand-yellow);
-            opacity: 0;
-            transform: scale(0.5);
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+    .input-label {
+      display: block; font-size: 10px; font-weight: 900; color: #64748b;
+      text-transform: uppercase; letter-spacing: .14em; margin-bottom: 8px;
+    }
 
-        .option-card.selected .check-indicator {
-            opacity: 1;
-            transform: scale(1);
-        }
+    .mini-label { font-size: 10px; font-weight: 850; color: #64748b; text-transform: uppercase; letter-spacing: .08em; }
 
-        .icon-container {
-            font-size: 3.5rem;
-            color: rgba(255, 255, 255, 0.7);
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 2;
-        }
+    .action-btn {
+      width: 100%; display: flex; align-items: center; gap: 14px;
+      min-height: 56px; padding: 14px 16px; border-radius: 18px;
+      background: #fff; border: 1px solid rgba(148,163,184,.22);
+      color: #0f172a; font-weight: 850; font-size: 14px;
+      transition: .2s ease; box-shadow: 0 10px 28px rgba(15,23,42,.045);
+    }
 
-        .option-text {
-            font-size: 1.3rem;
-            font-weight: 400;
-            line-height: 1.3;
-            color: rgba(255, 255, 255, 0.9);
-            position: relative;
-            z-index: 2;
-            transition: all 0.3s ease;
-        }
+    .action-btn:hover {
+      transform: translateY(-1px); border-color: rgba(152,20,145,.34);
+      box-shadow: 0 18px 34px rgba(152,20,145,.10); color: var(--brand-blue);
+    }
 
-        .expandable-section {
-            display: grid;
-            grid-template-rows: 0fr;
-            transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 100%;
-        }
+    .icon-chip {
+      width: 34px; height: 34px; display: grid; place-items: center;
+      border-radius: 13px; background: #fcebfc; flex-shrink: 0;
+    }
 
-        .expandable-section.show {
-            grid-template-rows: 1fr;
-        }
+    .tool-btn {
+      padding: 12px 14px; border-radius: 15px; background: #fff;
+      border: 1px solid rgba(148,163,184,.20); font-size: 10px;
+      font-weight: 900; text-transform: uppercase; letter-spacing: .10em;
+      color: #334155; transition: .2s ease;
+    }
 
-        .expandable-content {
-            overflow: hidden;
-        }
+    .tool-btn:hover:not(:disabled) { background: #fcebfc; color: var(--brand-blue); }
 
-        .input-group {
-            position: relative;
-            width: 100%;
-            margin-bottom: 1.2rem;
-        }
+    .frame-btn {
+      width: 100%; padding: 15px 16px; border-radius: 18px;
+      background: rgba(255,255,255,.78); border: 1px solid rgba(148,163,184,.22);
+      color: #334155; font-size: 11px; font-weight: 900;
+      text-transform: uppercase; letter-spacing: .08em; transition: .2s ease; text-align: left;
+    }
 
-        .input-group i {
-            position: absolute;
-            left: 1.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.4rem;
-            color: rgba(255, 255, 255, 0.5);
-            transition: color 0.3s ease;
-        }
+    .frame-btn:hover { transform: translateY(-1px); background: #fff; border-color: rgba(152,20,145,.35); }
+    .frame-btn.active { background: linear-gradient(135deg, #981491, #630b5e); color: #fff; border-color: transparent; box-shadow: 0 18px 35px rgba(152,20,145,.23); }
 
-        .custom-input {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            padding: 1.25rem 1.25rem 1.25rem 4rem;
-            font-size: 1.25rem;
-            color: white;
-            outline: none;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
+    .layer-item {
+      display: flex; align-items: center; gap: 13px; padding: 12px;
+      border-radius: 18px; border: 1px solid rgba(148,163,184,.18);
+      background: rgba(255,255,255,.72); cursor: pointer; transition: .2s ease;
+    }
 
-        .custom-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+    .layer-item:hover { background: #fff; transform: translateX(2px); }
+    .layer-item.selected { border-color: rgba(152,20,145,.75); background: #981491; color: #fff !important; box-shadow: 0 16px 30px rgba(152,20,145,.18); }
 
-        .custom-input:focus {
-            border-color: var(--brand-yellow);
-            background: rgba(0, 0, 0, 0.4);
-            box-shadow: 0 0 20px rgba(255, 232, 0, 0.15);
-        }
+    .delete-btn {
+      width: 100%; padding: 15px; background: #fff1f2; color: #e11d48;
+      font-weight: 950; border-radius: 18px; transition: .2s ease;
+      text-transform: uppercase; font-size: 10px; letter-spacing: .13em;
+      border: 1px solid rgba(244, 63, 94, .15); margin-top: 18px;
+    }
 
-        .custom-input:focus + i, .custom-input:not(:placeholder-shown) + i {
-            color: var(--brand-yellow);
-        }
+    input[type="range"] { width: 100%; accent-color: var(--brand-blue); }
 
-        .submit-btn {
-            background: linear-gradient(135deg, var(--brand-yellow), var(--brand-yellow-hover));
-            color: var(--brand-purple-dark);
-            border: none;
-            border-radius: 9999px;
-            padding: 1.25rem 3rem;
-            font-size: 1.75rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 10px 30px -5px rgba(255, 232, 0, 0.5);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            opacity: 0;
-            transform: translateY(30px) scale(0.9);
-            pointer-events: none;
-            width: 100%;
-            max-width: 400px;
-        }
+    #canvas-container {
+      position: relative; width: min(100%, 520px); aspect-ratio: 4 / 5;
+      border-radius: 30px; overflow: hidden; background: #fff;
+      box-shadow: 0 42px 90px rgba(15,23,42,.22), 0 0 0 10px rgba(255,255,255,.65);
+      touch-action: none;
+    }
 
-        .submit-btn.active {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: auto;
-        }
+    #canvas { width: 100%; height: 100%; display: block; }
 
-        .submit-btn.active:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 15px 40px -5px rgba(255, 232, 0, 0.6);
-        }
+    .preview-card { position: sticky; top: 24px; width: 100%; display: flex; flex-direction: column; align-items: center; }
 
-        .submit-btn.active:active {
-            transform: translateY(2px) scale(0.95);
-        }
+    .export-btn {
+      margin-top: 30px; display: inline-flex; align-items: center; justify-content: center;
+      gap: 12px; min-width: 240px; padding: 18px 26px; border-radius: 999px;
+      background: linear-gradient(135deg, #981491, #630b5e); color: #fff;
+      font-weight: 950; text-transform: uppercase; font-size: 12px; letter-spacing: .16em;
+      box-shadow: 0 24px 45px rgba(152,20,145,.28); transition: .2s ease;
+    }
 
-        .success-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            z-index: 50;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
-        }
+    .mobile-toolbar {
+      position: sticky; bottom: 12px; z-index: 20; display: none; gap: 8px;
+      padding: 8px; margin-top: 18px; border-radius: 22px; background: rgba(255,255,255,.86);
+      backdrop-filter: blur(16px); box-shadow: 0 18px 48px rgba(15,23,42,.18);
+      border: 1px solid rgba(255,255,255,.8);
+    }
 
-        .success-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
+    .mobile-toolbar button, .mobile-toolbar label {
+      flex: 1; min-height: 48px; display: grid; place-items: center;
+      border-radius: 16px; background: #f8fafc; font-size: 18px; cursor: pointer;
+    }
 
-        .check-circle-wrapper {
-            position: relative;
-            width: 160px;
-            height: 160px;
-            margin-bottom: 2rem;
-        }
-
-        .check-circle {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background: var(--whatsapp-green);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 5rem;
-            color: white;
-            transform: scale(0);
-            box-shadow: 0 20px 50px rgba(37, 211, 102, 0.4);
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 2;
-        }
-
-        .success-overlay.show .check-circle { transform: scale(1); }
-
-        .pulse-ring {
-            position: absolute;
-            inset: -20px;
-            border-radius: 50%;
-            border: 4px solid var(--whatsapp-green);
-            opacity: 0;
-            animation: none;
-            z-index: 1;
-        }
-
-        .success-overlay.show .pulse-ring {
-            animation: pulseOut 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
-            animation-delay: 0.6s;
-        }
-
-        @keyframes pulseOut {
-            0% { transform: scale(0.8); opacity: 0.8; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-
-        /* Toast Notification */
-        #toast {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: white;
-            color: #333;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            font-weight: 600;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: 100;
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        #toast.show { transform: translateX(-50%) translateY(0); }
-
-        /* Fullscreen button */
-        .fs-btn {
-            position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
-            width: 3rem;
-            height: 3rem;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.2rem;
-            cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.2);
-            z-index: 10;
-            backdrop-filter: blur(5px);
-            transition: all 0.2s;
-        }
-        .fs-btn:hover { background: rgba(255,255,255,0.2); }
-    </style>
+    @media (max-width: 1023px) {
+      .preview-card { position: static; }
+      .mobile-toolbar { display: flex; }
+      aside { order: 2; }
+      main { order: 1; }
+    }
+  </style>
 </head>
-<body>
 
-    <button class="fs-btn" onclick="toggleFullScreen()" title="Toggle Fullscreen">
-        <i class="fa-solid fa-expand" id="fs-icon"></i>
-    </button>
+<body class="lg:overflow-hidden">
+  <div class="app-shell flex flex-col lg:flex-row min-h-screen lg:h-screen">
+    <aside class="w-full lg:w-[460px] p-5 sm:p-7 lg:p-8 space-y-5 lg:h-full lg:overflow-y-auto no-scrollbar shrink-0 border-r border-slate-200/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] relative z-10 bg-white/40">
+      <header class="glass-panel p-6 flex flex-col items-center gap-4">
+        <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#981491] to-[#ff47e2] tracking-tighter uppercase py-2">Tenacity</h1>
+        <div class="flex gap-2 w-full mt-2">
+            <button id="saveDesignBtn" class="flex-1 tool-btn bg-slate-50 border-slate-300">💾 Save Design</button>
+            <label class="flex-1 tool-btn bg-slate-50 border-slate-300 text-center cursor-pointer">
+                📂 Load Design
+                <input type="file" id="importDesignInput" class="hidden" accept=".tenacity" />
+            </label>
+        </div>
+      </header>
 
-    <!-- Toast for admin messages -->
-    <div id="toast"><i class="fa-solid fa-download text-green-500 mr-2"></i> Session data exported!</div>
+      <div class="glass-panel p-3 grid grid-cols-2 gap-2">
+        <button id="undoBtn" class="tool-btn disabled:opacity-35">↶ Undo</button>
+        <button id="redoBtn" class="tool-btn disabled:opacity-35">Redo ↷</button>
+      </div>
 
-    <div class="flex-grow flex flex-col items-center justify-start p-4 sm:p-8 w-full max-w-[1400px] mx-auto overflow-y-auto no-scrollbar pb-32">
+      <section class="glass-panel p-5 sm:p-6">
+        <div class="panel-title">
+          <div class="flex items-center gap-3">
+            <span class="step-badge">1</span>
+            <h2 class="input-label !mb-0">Add Content</h2>
+          </div>
+        </div>
+        <div class="grid gap-3">
+          <label class="cursor-pointer block">
+            <input type="file" id="imgUpload" class="hidden" accept="image/*" />
+            <div class="action-btn"><span class="icon-chip">🖼️</span><span>Add Photo</span></div>
+          </label>
+          <label class="cursor-pointer block">
+            <input type="file" id="circleImgUpload" class="hidden" accept="image/*" />
+            <div class="action-btn"><span class="icon-chip">⭕</span><span>Add Circle Photo</span></div>
+          </label>
+          <button id="addTextBtn" class="action-btn"><span class="icon-chip">Aa</span><span>Add Text Layer</span></button>
+          <button id="addProductBtn" class="action-btn !bg-[#fae6fb] !border-[#981491]/30 hover:!border-[#981491]"><span class="icon-chip !bg-[#981491] !text-white">🏷️</span><span class="text-[#981491]">Add Product Pricing</span></button>
+        </div>
+      </section>
+
+      <section id="settings-panel" class="glass-panel p-5 sm:p-6 hidden">
+        <div class="panel-title">
+          <div class="flex items-center gap-3">
+            <span class="step-badge">2</span>
+            <h2 class="input-label !mb-0">Layer Settings</h2>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 mb-5">
+          <button id="btnCenter" class="tool-btn" title="Center Layer">Center</button>
+          <button id="btnDuplicate" class="tool-btn" title="Clone Layer">Clone</button>
+          <button id="btnFront" class="tool-btn">Front</button>
+        </div>
+
+        <div class="grid gap-5">
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="mini-label">Rotation</label>
+              <span id="valRotation" class="text-[11px] font-black text-[#981491]">0°</span>
+            </div>
+            <input type="range" id="inputRotation" min="0" max="360" value="0" />
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="mini-label">Scale</label>
+              <span id="valScale" class="text-[11px] font-black text-[#981491]">100%</span>
+            </div>
+            <input type="range" id="inputScale" min="10" max="400" value="100" />
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="mini-label">Shadow Depth</label>
+              <span id="valShadow" class="text-[11px] font-black text-[#981491]">0</span>
+            </div>
+            <input type="range" id="inputShadow" min="0" max="50" value="0" />
+          </div>
+        </div>
+
+        <!-- CIRCLE PHOTO EXTRAS -->
+        <div id="circle-extras" class="space-y-4 pt-5 mt-5 border-t border-slate-200/70 hidden">
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="mini-label">Border Thickness</label>
+              <span id="valStrokeWidth" class="text-[11px] font-black text-[#981491]">0px</span>
+            </div>
+            <input type="range" id="inputStrokeWidth" min="0" max="80" value="0" />
+          </div>
+          <div>
+            <label class="input-label">Border Color</label>
+            <input type="color" id="inputStrokeColor" class="w-full h-[50px] p-1 bg-white rounded-2xl cursor-pointer shadow-sm" value="#ffffff" />
+          </div>
+        </div>
+
+        <!-- TEXT EXTRAS -->
+        <div id="text-extras" class="space-y-4 pt-5 mt-5 border-t border-slate-200/70 hidden">
+          <div>
+            <label class="input-label">Text Content</label>
+            <textarea id="inputText" class="w-full p-4 bg-white rounded-2xl text-sm shadow-inner resize-none" rows="3"></textarea>
+          </div>
+          <div class="grid grid-cols-[1fr_72px] gap-3">
+            <select id="inputFont" class="w-full p-4 bg-white rounded-2xl text-xs font-bold shadow-sm">
+              <option value="Inter">Inter Sans</option>
+              <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
+              <option value="Bebas Neue">Bebas Neue</option>
+              <option value="Montserrat">Montserrat</option>
+              <option value="Bungee">Bungee</option>
+              <option value="Pacifico">Pacifico</option>
+              <option value="Fredoka One">Fredoka</option>
+            </select>
+            <input type="color" id="inputColor" class="w-full h-[50px] p-1 bg-white rounded-2xl cursor-pointer shadow-sm" />
+          </div>
+          <div class="flex justify-between items-center mb-2 mt-2">
+             <label class="mini-label">Text Alignment</label>
+             <select id="inputAlign" class="p-2 bg-white rounded-xl text-xs font-bold shadow-sm border border-slate-200 outline-none cursor-pointer">
+                <option value="left">Left Aligned</option>
+                <option value="center">Center Aligned</option>
+                <option value="right">Right Aligned</option>
+             </select>
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="mini-label">Stroke Width</label>
+              <span id="valTextStrokeWidth" class="text-[11px] font-black text-[#981491]">0px</span>
+            </div>
+            <input type="range" id="inputTextStrokeWidth" min="0" max="30" value="0" />
+          </div>
+          <div>
+            <label class="input-label">Stroke Color</label>
+            <input type="color" id="inputTextStrokeColor" class="w-full h-[50px] p-1 bg-white rounded-2xl cursor-pointer shadow-sm" value="#000000" />
+          </div>
+        </div>
+
+        <div class="flex gap-2 mt-5">
+           <button id="btnFlip" class="flex-1 tool-btn">Flip</button>
+           <button id="btnBack" class="flex-1 tool-btn">Send Back</button>
+        </div>
+        <button id="deleteLayerBtn" class="delete-btn">Delete Layer</button>
+      </section>
+
+      <section class="glass-panel p-5 sm:p-6">
+        <div class="panel-title">
+          <div class="flex items-center gap-3">
+            <span class="step-badge">3</span>
+            <h2 class="input-label !mb-0">Layers & Canvas</h2>
+          </div>
+        </div>
+        <div class="flex items-center justify-between mb-4 px-2">
+           <label class="mini-label">Canvas BG</label>
+           <input type="color" id="canvasBgColor" value="#ffffff" class="w-8 h-8 rounded-full border-none p-0 overflow-hidden cursor-pointer" />
+        </div>
+        <div id="layerList" class="space-y-2 max-h-64 overflow-y-auto no-scrollbar"></div>
+      </section>
+
+      <section class="glass-panel p-5 sm:p-6">
+        <div class="panel-title">
+          <div class="flex items-center gap-3">
+            <span class="step-badge">4</span>
+            <h2 class="input-label !mb-0">Layout Frames</h2>
+          </div>
+        </div>
+        <div class="grid gap-2">
+          <button class="frame-btn active" data-idx="0">Post Overlay</button>
+          <button class="frame-btn" data-idx="1">Story Overlay</button>
+          <button class="frame-btn" data-idx="2">Reel Overlay</button>
+          <button class="frame-btn" data-idx="3">Alt Post Overlay</button>
+        </div>
+      </section>
+    </aside>
+
+    <main class="flex-grow flex flex-col items-center justify-start p-5 sm:p-8 lg:p-12 lg:h-full lg:overflow-y-auto w-full relative">
+      <div class="preview-card w-full flex flex-col items-center">
+        <div class="mb-5 text-center">
+          <h2 class="text-2xl font-black tracking-tight">Live Preview</h2>
+          <div class="flex gap-4 justify-center mt-2">
+            <label class="flex items-center gap-2 cursor-pointer opacity-60 hover:opacity-100">
+               <input type="checkbox" id="gridToggle" class="accent-[#981491]" />
+               <span class="text-[10px] font-black uppercase tracking-widest">Show Grid</span>
+            </label>
+          </div>
+        </div>
+
+        <div id="canvas-container">
+          <canvas id="canvas"></canvas>
+        </div>
+
+        <button id="exportBtn" class="export-btn">Download Post</button>
+
+        <div class="mobile-toolbar">
+          <label><input type="file" id="mobileImgUpload" class="hidden" accept="image/*" />🖼️</label>
+          <button id="mobileTextBtn">Aa</button>
+          <button id="mobileUndoBtn">↶</button>
+          <button id="mobileExportBtn">⬇️</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let CANVAS_WIDTH = 1080, CANVAS_HEIGHT = 1350;
+
+    let layers = [], selectedLayer = null;
+    let isDragging = false, dragStart = { x: 0, y: 0 };
+    let undoStack = [], redoStack = [];
+    let currentOverlayIdx = 0, loadedOverlays = [];
+    let showGrid = false;
+    let canvasBg = '#ffffff';
+
+    const overlayUrls = [
+      'https://i.ibb.co/fVLvkVWS/overlay.png',
+      'https://i.ibb.co/8nF518H6/overlay-1-stories.png',
+      'https://i.ibb.co/Xx44ZWgJ/reeel-overlay.png',
+      'https://i.ibb.co/WpxPSZWk/post-overlay.png'
+    ];
+
+    async function init() {
+      loadedOverlays = await Promise.all(overlayUrls.map(url => new Promise(resolve => {
+        const img = new Image(); img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img); img.onerror = () => resolve(null);
+        img.src = url;
+      })));
+      
+      updateCanvasDimensions();
+      setupEventListeners();
+      updateHistoryBtns();
+      updateLayerList();
+      draw();
+    }
+
+    function updateCanvasDimensions() {
+      if (loadedOverlays[currentOverlayIdx]) {
+        CANVAS_WIDTH = loadedOverlays[currentOverlayIdx].naturalWidth || 1080;
+        CANVAS_HEIGHT = loadedOverlays[currentOverlayIdx].naturalHeight || 1350;
+      } else {
+        CANVAS_WIDTH = 1080; CANVAS_HEIGHT = 1350;
+      }
+      canvas.width = CANVAS_WIDTH; 
+      canvas.height = CANVAS_HEIGHT;
+      document.getElementById('canvas-container').style.aspectRatio = `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}`;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      ctx.fillStyle = canvasBg;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      if (showGrid) drawGrid();
+
+      // Helper to render a single layer
+      const renderLayer = (layer) => {
+        ctx.save();
+        ctx.globalAlpha = layer.opacity !== undefined ? layer.opacity : 1;
         
-        <!-- Header with Logo -->
-        <div class="text-center mb-8 w-full flex flex-col items-center mt-4">
-            <img 
-                src="https://tenacitylockslimited.com/assets/images/logos/white-logo.png" 
-                alt="Tenacity Locks" 
-                class="h-16 md:h-24 object-contain mb-6 drop-shadow-2xl cursor-pointer"
-                id="logoImg"
-                title="Tap 5 times to download session data"
-            >
-            <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight drop-shadow-lg">
-                How did you hear about us? <span class="text-[#ffe800]">*</span>
-            </h1>
-            <p class="text-slate-300 mt-3 text-lg md:text-xl font-light">Select all that apply</p>
-        </div>
-
-        <!-- Responsive touch-target grid -->
-        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 w-full mb-8" id="optionsContainer">
-            <!-- Cards rendered by JS -->
-        </div>
-
-        <div class="w-full max-w-4xl flex flex-col items-center">
-            
-            <!-- Other Input Section -->
-            <div id="otherInputSection" class="expandable-section w-full">
-                <div class="expandable-content pt-2 pb-6 w-full flex justify-center">
-                    <div class="w-full md:w-3/4">
-                        <div class="input-group">
-                            <input type="text" id="otherTextInput" class="custom-input" placeholder="Please specify..." autocomplete="off">
-                            <i class="fa-solid fa-pen"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Contact Section -->
-            <div id="contactSection" class="expandable-section w-full">
-                <div class="expandable-content w-full pb-8">
-                    <div class="glass-panel rounded-3xl p-6 md:p-10 w-full">
-                        <h3 class="text-2xl md:text-3xl font-semibold mb-2 text-center text-[#ffe800]">Almost Done!</h3>
-                        <p class="text-center text-slate-300 mb-8 font-light">Leave your details for exclusive offers <span class="opacity-60">(Optional)</span></p>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
-                            <div class="input-group md:col-span-2">
-                                <input type="text" id="nameInput" class="custom-input" placeholder="Full Name" autocomplete="off">
-                                <i class="fa-solid fa-user"></i>
-                            </div>
-                            <div class="input-group">
-                                <input type="tel" id="phoneInput" class="custom-input" placeholder="Phone Number" autocomplete="off">
-                                <i class="fa-solid fa-phone"></i>
-                            </div>
-                            <div class="input-group">
-                                <input type="email" id="emailInput" class="custom-input" placeholder="Email Address" autocomplete="off">
-                                <i class="fa-solid fa-envelope"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="mt-4 flex justify-center w-full">
-                <button id="submitBtn" class="submit-btn" onclick="submitSurvey()">
-                    <span>Submit</span>
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="successOverlay" class="success-overlay">
-        <div class="check-circle-wrapper">
-            <div class="pulse-ring"></div>
-            <div class="check-circle">
-                <i class="fa-solid fa-check"></i>
-            </div>
-        </div>
-        <h2 class="text-5xl md:text-7xl font-bold mb-4 text-center text-white drop-shadow-lg">Thank You!</h2>
-        <p class="text-2xl md:text-3xl text-slate-200 text-center max-w-3xl px-4 font-light drop-shadow-md">
-            We truly appreciate your feedback.
-        </p>
-        <p class="text-xl text-[#ffe800] mt-12 font-medium">
-            Resetting in <span id="resetTimer" class="font-bold text-2xl">5</span>...
-        </p>
-    </div>
-
-    <script>
-        // Survey Options Data
-        const surveyOptions = [
-            { id: 'tiktok', label: 'Tiktok', icon: 'fa-brands fa-tiktok' },
-            { id: 'facebook', label: 'Facebook', icon: 'fa-brands fa-facebook' },
-            { id: 'instagram', label: 'Instagram', icon: 'fa-brands fa-instagram' },
-            { id: 'google', label: 'Google', icon: 'fa-brands fa-google' },
-            { id: 'return', label: 'Return Customer', icon: 'fa-solid fa-arrow-rotate-left' },
-            { id: 'referral', label: 'Referral', icon: 'fa-solid fa-users' },
-            { id: 'longterm', label: 'Long Term<br><span class="text-sm opacity-70">(More than 3 years)</span>', icon: 'fa-solid fa-award' },
-            { id: 'walkin', label: 'Walk In<br><span class="text-sm opacity-70">(Passing by)</span>', icon: 'fa-solid fa-person-walking' },
-            { id: 'other', label: 'Other', icon: 'fa-solid fa-ellipsis' }
-        ];
-
-        // State Management
-        let selectedOptionIds = new Set();
-        let sessionDataStore = []; // In-memory database
-        let inactivityTimer = null;
-        let logoTapCount = 0;
-        let logoTapTimer = null;
-        const INACTIVITY_TIMEOUT = 120000; // 2 minutes
-
-        // DOM Elements
-        const optionsContainer = document.getElementById('optionsContainer');
-        const otherInputSection = document.getElementById('otherInputSection');
-        const otherTextInput = document.getElementById('otherTextInput');
-        const contactSection = document.getElementById('contactSection');
-        const submitBtn = document.getElementById('submitBtn');
-        const successOverlay = document.getElementById('successOverlay');
-        const resetTimerEl = document.getElementById('resetTimer');
-        const logoImg = document.getElementById('logoImg');
-        const toast = document.getElementById('toast');
-
-        function init() {
-            renderOptions();
-            setupEventListeners();
-            resetInactivityTimer();
+        const cx = layer.type === 'text' ? layer.x : layer.x + layer.width / 2;
+        const cy = layer.type === 'text' ? layer.y : layer.y + layer.height / 2;
+        
+        if (layer.shadow && layer.shadow > 0) {
+           ctx.shadowColor = 'rgba(0,0,0,0.5)';
+           ctx.shadowBlur = layer.shadow;
+           ctx.shadowOffsetX = layer.shadow / 2;
+           ctx.shadowOffsetY = layer.shadow / 2;
         }
 
-        function renderOptions() {
-            optionsContainer.innerHTML = '';
-            
-            surveyOptions.forEach(option => {
-                const card = document.createElement('div');
-                card.className = 'option-card';
-                card.id = `opt-${option.id}`;
-                card.onclick = () => toggleOption(option.id);
-                
-                card.innerHTML = `
-                    <div class="check-indicator"><i class="fa-solid fa-circle-check"></i></div>
-                    <div class="icon-container">
-                        <i class="${option.icon}"></i>
-                    </div>
-                    <div class="option-text">${option.label}</div>
-                `;
-                
-                optionsContainer.appendChild(card);
+        ctx.translate(cx, cy);
+        ctx.rotate((layer.rotation || 0) * Math.PI / 180);
+        if (layer.flipped) ctx.scale(-1, 1);
+        ctx.translate(-cx, -cy);
+
+        if (layer.type === 'text') drawTextLayer(layer);
+        else if (layer.type === 'image' && layer.img) ctx.drawImage(layer.img, layer.x, layer.y, layer.width, layer.height);
+        else if (layer.type === 'circle-image') drawCircleLayer(layer);
+        
+        ctx.restore();
+      };
+
+      // 1. Draw Images (Behind the overlay)
+      [...layers].filter(l => l.type !== 'text').sort((a,b) => a.zIndex - b.zIndex).forEach(renderLayer);
+
+      // 2. Draw the Overlay Frame
+      if (loadedOverlays[currentOverlayIdx]) {
+        ctx.drawImage(loadedOverlays[currentOverlayIdx], 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      }
+
+      // 3. Draw Texts (On top of the overlay)
+      [...layers].filter(l => l.type === 'text').sort((a,b) => a.zIndex - b.zIndex).forEach(renderLayer);
+
+      if (selectedLayer) drawSelectionHighlight(selectedLayer);
+    }
+
+    function drawGrid() {
+       ctx.save(); ctx.strokeStyle = 'rgba(0,0,0,0.05)'; ctx.lineWidth = 2;
+       const stepX = CANVAS_WIDTH / 10; const stepY = CANVAS_HEIGHT / 10;
+       for (let i = 0; i < CANVAS_WIDTH; i += stepX) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, CANVAS_HEIGHT); ctx.stroke(); }
+       for (let j = 0; j < CANVAS_HEIGHT; j += stepY) { ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(CANVAS_WIDTH, j); ctx.stroke(); }
+       ctx.restore();
+    }
+
+    function drawTextLayer(l) {
+      ctx.font = `bold ${l.size}px "${l.font || 'Inter'}"`;
+      ctx.textAlign = l.align || 'center'; 
+      ctx.textBaseline = 'middle';
+      
+      const lines = (l.text || '').split('\n');
+      const lineHeight = l.size * 1.2;
+      const startY = l.y - ((lines.length - 1) * lineHeight) / 2;
+
+      lines.forEach((line, index) => {
+        const lineY = startY + index * lineHeight;
+        if (l.textStrokeWidth && l.textStrokeWidth > 0) {
+          ctx.lineWidth = l.textStrokeWidth * 2;
+          ctx.strokeStyle = l.textStrokeColor || '#000000';
+          ctx.strokeText(line, l.x, lineY);
+        }
+        ctx.fillStyle = l.color;
+        ctx.fillText(line, l.x, lineY);
+      });
+    }
+
+    function drawCircleLayer(l) {
+      if (!l.img) return;
+      const cx = l.x + l.width / 2; const cy = l.y + l.height / 2;
+      const r = Math.min(l.width, l.height) / 2;
+      ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+      ctx.drawImage(l.img, l.x, l.y, l.width, l.height); ctx.restore();
+      if (l.strokeWidth && l.strokeWidth > 0) {
+        ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.lineWidth = l.strokeWidth; ctx.strokeStyle = l.strokeColor || '#ffffff';
+        ctx.stroke(); ctx.restore();
+      }
+    }
+
+    function drawSelectionHighlight(l) {
+      ctx.save(); ctx.strokeStyle = '#981491'; ctx.setLineDash([12, 10]); ctx.lineWidth = 4;
+      const cx = l.type === 'text' ? l.x : l.x + l.width / 2;
+      const cy = l.type === 'text' ? l.y : l.y + l.height / 2;
+      ctx.translate(cx, cy); ctx.rotate((l.rotation || 0) * Math.PI / 180); ctx.translate(-cx, -cy);
+      
+      if (l.type === 'text') {
+        ctx.font = `bold ${l.size}px "${l.font || 'Inter'}"`;
+        const lines = (l.text || '').split('\n');
+        const maxW = Math.max(...lines.map(line => ctx.measureText(line).width));
+        const w = maxW + 70;
+        const h = lines.length * (l.size * 1.2) + 20;
+        
+        let drawX = l.x - w / 2;
+        if (l.align === 'left') drawX = l.x - 35; 
+        else if (l.align === 'right') drawX = l.x - maxW - 35;
+        
+        ctx.strokeRect(drawX, l.y - h / 2, w, h);
+      } else { 
+        ctx.strokeRect(l.x - 6, l.y - 6, l.width + 12, l.height + 12); 
+      }
+      ctx.restore();
+    }
+
+    function setupEventListeners() {
+      canvas.onmousedown = onPointerDown;
+      canvas.ontouchstart = e => onPointerDown(e.touches[0], e);
+      window.onmousemove = onPointerMove;
+      window.ontouchmove = e => { if (isDragging) e.preventDefault(); onPointerMove(e.touches[0]); };
+      window.onmouseup = onPointerUp; window.ontouchend = onPointerUp;
+
+      document.getElementById('imgUpload').onchange = e => handleFile(e, 'image');
+      document.getElementById('circleImgUpload').onchange = e => handleFile(e, 'circle-image');
+      document.getElementById('mobileImgUpload').onchange = e => handleFile(e, 'image');
+      document.getElementById('addTextBtn').onclick = () => addLayer('text', 'STORY TEXT');
+      document.getElementById('addProductBtn').onclick = addProductLabels;
+      document.getElementById('mobileTextBtn').onclick = () => addLayer('text', 'STORY TEXT');
+
+      bindRange('inputRotation', 'rotation');
+      bindRange('inputScale', 'scale', true);
+      bindRange('inputShadow', 'shadow');
+      bindRange('inputStrokeWidth', 'strokeWidth');
+      bindRange('inputTextStrokeWidth', 'textStrokeWidth');
+
+      document.getElementById('canvasBgColor').oninput = e => { canvasBg = e.target.value; draw(); };
+      document.getElementById('gridToggle').onchange = e => { showGrid = e.target.checked; draw(); };
+
+      document.getElementById('saveDesignBtn').onclick = exportDesignFile;
+      document.getElementById('importDesignInput').onchange = importDesignFile;
+
+      document.getElementById('btnCenter').onclick = () => {
+         if (!selectedLayer) return;
+         if (selectedLayer.type === 'text') {
+            selectedLayer.x = CANVAS_WIDTH / 2; selectedLayer.y = CANVAS_HEIGHT / 2;
+         } else {
+            selectedLayer.x = (CANVAS_WIDTH - selectedLayer.width) / 2;
+            selectedLayer.y = (CANVAS_HEIGHT - selectedLayer.height) / 2;
+         }
+         draw(); saveState();
+      };
+
+      document.getElementById('btnDuplicate').onclick = () => {
+         if (!selectedLayer) return;
+         const clone = JSON.parse(JSON.stringify(selectedLayer));
+         clone.id = Date.now(); clone.x += 40; clone.y += 40; clone.zIndex += 1;
+         if (selectedLayer.img) clone.img = selectedLayer.img;
+         layers.push(clone); selectLayer(clone); saveState();
+      };
+
+      document.getElementById('inputStrokeColor').oninput = e => { if (selectedLayer) { selectedLayer.strokeColor = e.target.value; draw(); } };
+      document.getElementById('inputTextStrokeColor').oninput = e => { if (selectedLayer) { selectedLayer.textStrokeColor = e.target.value; draw(); } };
+      document.getElementById('inputText').oninput = e => { if (selectedLayer) { selectedLayer.text = e.target.value; updateLayerList(); draw(); } };
+      document.getElementById('inputColor').oninput = e => { if (selectedLayer) { selectedLayer.color = e.target.value; draw(); } };
+      document.getElementById('inputAlign').onchange = e => { if (selectedLayer) { selectedLayer.align = e.target.value; draw(); saveState(); } };
+      document.getElementById('inputFont').onchange = e => { if (selectedLayer) { selectedLayer.font = e.target.value; draw(); saveState(); } };
+
+      document.getElementById('btnFront').onclick = () => { if (selectedLayer) { selectedLayer.zIndex = (layers.length ? Math.max(...layers.map(l => l.zIndex)) : 0) + 1; draw(); saveState(); } };
+      document.getElementById('btnBack').onclick = () => { if (selectedLayer) { selectedLayer.zIndex = (layers.length ? Math.min(...layers.map(l => l.zIndex)) : 0) - 1; draw(); saveState(); } };
+      document.getElementById('btnFlip').onclick = () => { if (selectedLayer) { selectedLayer.flipped = !selectedLayer.flipped; draw(); saveState(); } };
+      document.getElementById('deleteLayerBtn').onclick = () => { if (selectedLayer) { saveState(); layers = layers.filter(l => l.id !== selectedLayer.id); selectLayer(null); } };
+
+      document.querySelectorAll('.frame-btn').forEach(b => b.onclick = () => {
+        currentOverlayIdx = parseInt(b.dataset.idx);
+        document.querySelectorAll('.frame-btn').forEach(btn => btn.classList.remove('active'));
+        b.classList.add('active'); 
+        updateCanvasDimensions();
+        draw();
+      });
+
+      document.getElementById('exportBtn').onclick = exportPost;
+      document.getElementById('mobileExportBtn').onclick = exportPost;
+      document.getElementById('undoBtn').onclick = undo;
+      document.getElementById('redoBtn').onclick = redo;
+      document.getElementById('mobileUndoBtn').onclick = undo;
+    }
+
+    function onPointerDown(e, originalEvent) {
+      const pos = getMousePos(e);
+      const found = [...layers].sort((a,b) => b.zIndex - a.zIndex).find(l => isPointInLayer(pos, l));
+      if (found) { selectLayer(found); isDragging = true; dragStart = { x: pos.x - found.x, y: pos.y - found.y }; }
+      else { selectLayer(null); }
+    }
+
+    function onPointerMove(e) { if (isDragging && selectedLayer) { const p = getMousePos(e); selectedLayer.x = p.x - dragStart.x; selectedLayer.y = p.y - dragStart.y; draw(); } }
+    function onPointerUp() { if (isDragging) saveState(); isDragging = false; }
+
+    function bindRange(id, prop, isScale = false) {
+      const el = document.getElementById(id);
+      el.oninput = () => {
+        if (!selectedLayer) return;
+        const val = parseInt(el.value);
+        if (isScale) {
+           const s = val / 100;
+           if (selectedLayer.type === 'text') selectedLayer.size = Math.round(80 * s);
+           else if (selectedLayer.img) { selectedLayer.width = selectedLayer.img.naturalWidth * s; selectedLayer.height = selectedLayer.img.naturalHeight * s; }
+           document.getElementById('valScale').innerText = val + '%';
+        } else {
+           selectedLayer[prop] = val;
+           const indId = 'val' + prop.charAt(0).toUpperCase() + prop.slice(1);
+           const ind = document.getElementById(indId);
+           if (ind) ind.innerText = val + (prop === 'rotation' ? '°' : (prop === 'shadow' ? '' : 'px'));
+        }
+        draw();
+      };
+      el.onchange = saveState;
+    }
+
+    function selectLayer(l) {
+      selectedLayer = l;
+      const panel = document.getElementById('settings-panel');
+      if (!l) { panel.classList.add('hidden'); } else {
+        panel.classList.remove('hidden');
+        document.getElementById('inputRotation').value = l.rotation || 0;
+        document.getElementById('valRotation').innerText = (l.rotation || 0) + '°';
+        document.getElementById('inputShadow').value = l.shadow || 0;
+        document.getElementById('valShadow').innerText = l.shadow || 0;
+        
+        let sVal = 100;
+        if (l.type === 'text') sVal = Math.round((l.size / 80) * 100);
+        else if (l.img) sVal = Math.round((l.width / l.img.naturalWidth) * 100);
+        document.getElementById('inputScale').value = sVal;
+        document.getElementById('valScale').innerText = sVal + '%';
+
+        document.getElementById('circle-extras').classList.toggle('hidden', l.type !== 'circle-image');
+        if (l.type === 'circle-image') {
+          document.getElementById('inputStrokeWidth').value = l.strokeWidth || 0;
+          document.getElementById('valStrokeWidth').innerText = (l.strokeWidth || 0) + 'px';
+          document.getElementById('inputStrokeColor').value = l.strokeColor || '#ffffff';
+        }
+
+        document.getElementById('text-extras').classList.toggle('hidden', l.type !== 'text');
+        if (l.type === 'text') {
+          document.getElementById('inputText').value = l.text;
+          document.getElementById('inputColor').value = l.color;
+          document.getElementById('inputAlign').value = l.align || 'center';
+          document.getElementById('inputTextStrokeWidth').value = l.textStrokeWidth || 0;
+          document.getElementById('valTextStrokeWidth').innerText = (l.textStrokeWidth || 0) + 'px';
+          document.getElementById('inputTextStrokeColor').value = l.textStrokeColor || '#000000';
+        }
+      }
+      updateLayerList(); draw();
+    }
+
+    function handleFile(e, type) {
+      const f = e.target.files[0]; if (!f) return;
+      const r = new FileReader(); r.onload = evt => addLayer(type, evt.target.result); r.readAsDataURL(f);
+      e.target.value = '';
+    }
+
+    function addLayer(type, src) {
+      saveState(); const id = Date.now();
+      const z = layers.length ? Math.max(...layers.map(l => l.zIndex)) + 1 : 1;
+      let l = { id, type, zIndex: z, opacity: 1, rotation: 0, flipped: false, shadow: 0 };
+      if (type === 'text') {
+        l = { ...l, text: src, x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, size: 80, color: '#0f172a', font: 'Inter', align: 'center', textStrokeWidth: 0, textStrokeColor: '#000000' };
+        layers.push(l); selectLayer(l);
+      } else {
+        const i = new Image(); i.crossOrigin = 'anonymous';
+        i.onload = () => {
+          const s = Math.min((CANVAS_WIDTH * .7) / i.naturalWidth, .7);
+          l.img = i; l.width = i.naturalWidth * s; l.height = i.naturalHeight * s;
+        l.x = (CANVAS_WIDTH - l.width) / 2; l.y = (CANVAS_HEIGHT - l.height) / 2;
+        if (type === 'circle-image') { l.strokeWidth = 0; l.strokeColor = '#ffffff'; }
+        layers.push(l); selectLayer(l);
+      };
+      i.src = src;
+    }
+  }
+
+  function getMousePos(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * (CANVAS_WIDTH / r.width), y: (e.clientY - r.top) * (CANVAS_HEIGHT / r.height) };
+  }
+
+  function addProductLabels() {
+    saveState();
+    const zBase = layers.length ? Math.max(...layers.map(l => l.zIndex)) + 1 : 1;
+    
+    // Creating the exact text elements mapped to the provided coordinates
+    const titleLayer = { id: Date.now(), type: 'text', text: '90 ACC', x: 195, y: 1001, size: 55, color: '#ffffff', font: 'Plus Jakarta Sans', align: 'left', zIndex: zBase, opacity: 1, rotation: 0, shadow: 0 };
+    const descLayer = { id: Date.now()+1, type: 'text', text: 'Tenacity 3-pin\nWith pure brass\nDimple keys', x: 195, y: 1081, size: 26, color: '#ffffff', font: 'Plus Jakarta Sans', align: 'left', zIndex: zBase+1, opacity: 1, rotation: 0, shadow: 0 };
+    const curLayer = { id: Date.now()+2, type: 'text', text: 'KSH', x: 550, y: 1040, size: 30, color: '#ffffff', font: 'Bebas Neue', align: 'left', zIndex: zBase+2, opacity: 1, rotation: 0, shadow: 0 };
+    const priceLayer = { id: Date.now()+3, type: 'text', text: '6,000/=', x: 625, y: 1100, size: 95, color: '#ffffff', font: 'Bebas Neue', align: 'left', zIndex: zBase+3, opacity: 1, rotation: 0, shadow: 0 };
+
+    layers.push(titleLayer, descLayer, curLayer, priceLayer);
+    
+    // Auto-switch to Post Overlay to match the product label context
+    currentOverlayIdx = 0;
+    document.querySelectorAll('.frame-btn').forEach((btn, idx) => {
+      btn.classList.toggle('active', idx === currentOverlayIdx);
+    });
+    updateCanvasDimensions();
+    
+    selectLayer(titleLayer);
+  }
+
+  function isPointInLayer(p, l) {
+    if (l.type === 'text') {
+      ctx.font = `bold ${l.size}px "${l.font || 'Inter'}"`;
+        const lines = (l.text || '').split('\n');
+        const maxW = Math.max(...lines.map(line => ctx.measureText(line).width));
+        const w = maxW + 60;
+        const h = lines.length * (l.size * 1.2) + 20;
+        
+        let left = l.x - w / 2;
+        if (l.align === 'left') left = l.x - 30;
+        else if (l.align === 'right') left = l.x - maxW - 30;
+
+        const top = l.y - h / 2;
+        return p.x > left && p.x < left + w && p.y > top && p.y < top + h;
+      }
+      return p.x > l.x && p.x < l.x + l.width && p.y > l.y && p.y < l.y + l.height;
+    }
+
+    function updateLayerList() {
+      const list = document.getElementById('layerList');
+      list.innerHTML = layers.length ? '' : '<div class="text-xs text-slate-400 text-center py-4 font-bold">No layers yet.</div>';
+      [...layers].sort((a,b) => b.zIndex - a.zIndex).forEach(l => {
+        const d = document.createElement('div');
+        d.className = `layer-item ${selectedLayer?.id === l.id ? 'selected' : ''}`;
+        d.innerHTML = `<div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center font-black overflow-hidden">${l.type === 'text' ? 'Aa' : `<img src="${l.img.src}" class="w-full h-full object-cover">`}</div><span class="text-[11px] font-black uppercase truncate">${l.type === 'text' ? l.text : l.type}</span>`;
+        d.onclick = () => selectLayer(l); list.appendChild(d);
+      });
+    }
+
+    function saveState() {
+      const s = JSON.stringify(layers.map(l => { const c = {...l}; if(c.img) c._imgSrc = c.img.src; delete c.img; return c; }));
+      undoStack.push(s); redoStack = []; updateHistoryBtns();
+    }
+
+    async function undo() {
+      if (!undoStack.length) return;
+      redoStack.push(JSON.stringify(layers.map(l => { const c = {...l}; if(c.img) c._imgSrc = c.img.src; delete c.img; return c; })));
+      layers = await restore(JSON.parse(undoStack.pop())); selectLayer(null); updateHistoryBtns();
+    }
+    async function redo() {
+      if (!redoStack.length) return;
+      undoStack.push(JSON.stringify(layers.map(l => { const c = {...l}; if(c.img) c._imgSrc = c.img.src; delete c.img; return c; })));
+      layers = await restore(JSON.parse(redoStack.pop())); selectLayer(null); updateHistoryBtns();
+    }
+    async function restore(s) {
+      for (const l of s) if (l._imgSrc) { const i = new Image(); i.crossOrigin = 'anonymous'; i.src = l._imgSrc; await new Promise(r => { i.onload = r; i.onerror = r; }); l.img = i; delete l._imgSrc; }
+      return s;
+    }
+    function updateHistoryBtns() { document.getElementById('undoBtn').disabled = !undoStack.length; document.getElementById('redoBtn').disabled = !redoStack.length; }
+
+    function exportDesignFile() {
+      const project = {
+         version: "1.0",
+         canvasBg,
+         currentOverlayIdx,
+         layers: layers.map(l => { const c = {...l}; if(c.img) c._imgSrc = c.img.src; delete c.img; return c; })
+      };
+      const blob = new Blob([JSON.stringify(project)], { type: "application/json" });
+      const a = document.createElement('a');
+      a.download = `Design_${Date.now()}.tenacity`;
+      a.href = URL.createObjectURL(blob);
+      a.click();
+    }
+
+    async function importDesignFile(e) {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+         try {
+            const project = JSON.parse(evt.target.result);
+            canvasBg = project.canvasBg || '#ffffff';
+            document.getElementById('canvasBgColor').value = canvasBg;
+            currentOverlayIdx = project.currentOverlayIdx || 0;
+            document.querySelectorAll('.frame-btn').forEach((btn, idx) => {
+                btn.classList.toggle('active', idx === currentOverlayIdx);
             });
-        }
+            layers = await restore(project.layers);
+            selectLayer(null);
+            saveState();
+         } catch (err) {
+            console.error("Invalid project file");
+         }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
 
-        function toggleOption(id) {
-            resetInactivityTimer();
-            
-            // Toggle selection in Set
-            if (selectedOptionIds.has(id)) {
-                selectedOptionIds.delete(id);
-                document.getElementById(`opt-${id}`).classList.remove('selected');
-            } else {
-                selectedOptionIds.add(id);
-                document.getElementById(`opt-${id}`).classList.add('selected');
-            }
-            
-            // Handle "Other" input visibility
-            if (selectedOptionIds.has('other')) {
-                otherInputSection.classList.add('show');
-                // Scroll slightly to ensure it's in view
-                setTimeout(() => {
-                    otherTextInput.focus();
-                    otherTextInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 300);
-            } else {
-                otherInputSection.classList.remove('show');
-            }
+    function exportPost() {
+      const cur = selectedLayer; selectedLayer = null; draw();
+      setTimeout(() => {
+        const a = document.createElement('a'); a.download = `Tenacity_${Date.now()}.png`; a.href = canvas.toDataURL('image/png', 1.0); a.click();
+        selectedLayer = cur; draw();
+      }, 100);
+    }
 
-            // Show contact section if AT LEAST ONE option is selected
-            if (selectedOptionIds.size > 0) {
-                contactSection.classList.add('show');
-            } else {
-                contactSection.classList.remove('show');
-            }
-
-            checkSubmitValidity();
-        }
-
-        function checkSubmitValidity() {
-            let isValid = selectedOptionIds.size > 0;
-            
-            // If 'other' is selected, ensure they typed something
-            if (selectedOptionIds.has('other') && otherTextInput.value.trim().length === 0) {
-                isValid = false;
-            }
-            
-            if (isValid) {
-                submitBtn.classList.add('active');
-            } else {
-                submitBtn.classList.remove('active');
-            }
-        }
-
-        function setupEventListeners() {
-            // Validate on typing
-            otherTextInput.addEventListener('input', () => {
-                resetInactivityTimer();
-                checkSubmitValidity();
-            });
-
-            // Auto-scroll for touch keyboards
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('focus', () => {
-                    setTimeout(() => {
-                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 300);
-                });
-                input.addEventListener('input', resetInactivityTimer);
-            });
-
-            // Global activity tracking
-            ['touchstart', 'mousemove', 'keypress', 'click'].forEach(evt => {
-                document.addEventListener(evt, resetInactivityTimer);
-            });
-
-            // Secret Admin Feature: Tap logo to export data
-            logoImg.addEventListener('click', handleLogoTap);
-        }
-
-        function handleLogoTap() {
-            logoTapCount++;
-            clearTimeout(logoTapTimer);
-            
-            if (logoTapCount >= 5) {
-                exportLocalData();
-                logoTapCount = 0;
-            } else {
-                logoTapTimer = setTimeout(() => { logoTapCount = 0; }, 1000); // Reset count after 1s
-            }
-        }
-
-        function exportLocalData() {
-            if (sessionDataStore.length === 0) {
-                showToast("No data to export yet!");
-                return;
-            }
-
-            // Convert JSON array to CSV string
-            const headers = ['Date', 'Sources', 'Other Details', 'Name', 'Phone', 'Email'];
-            const csvRows = [headers.join(',')];
-
-            sessionDataStore.forEach(row => {
-                const sourcesStr = `"${row.sources.join(', ')}"`;
-                const otherStr = `"${row.otherText.replace(/"/g, '""')}"`;
-                const nameStr = `"${row.customerName.replace(/"/g, '""')}"`;
-                const phoneStr = `"${row.customerPhone.replace(/"/g, '""')}"`;
-                const emailStr = `"${row.customerEmail.replace(/"/g, '""')}"`;
-                
-                csvRows.push([row.timestamp, sourcesStr, otherStr, nameStr, phoneStr, emailStr].join(','));
-            });
-
-            const csvString = csvRows.join('\n');
-            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `tenacity-survey-${new Date().getTime()}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            showToast("Session data exported successfully!");
-        }
-
-        function showToast(msg) {
-            toast.innerHTML = `<i class="fa-solid fa-info-circle text-blue-500 mr-2"></i> ${msg}`;
-            toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, 3000);
-        }
-
-        function submitSurvey() {
-            if (!submitBtn.classList.contains('active')) return;
-            
-            resetInactivityTimer();
-            
-            // Gather Selected Labels
-            const selectedLabels = Array.from(selectedOptionIds).map(id => {
-                const opt = surveyOptions.find(o => o.id === id);
-                return opt.label.replace(/<[^>]*>?/gm, ' ').trim(); // Strip HTML
-            });
-
-            const responseData = {
-                timestamp: new Date().toLocaleString(),
-                sources: selectedLabels,
-                otherText: selectedOptionIds.has('other') ? otherTextInput.value.trim() : '',
-                customerName: document.getElementById('nameInput').value.trim(),
-                customerPhone: document.getElementById('phoneInput').value.trim(),
-                customerEmail: document.getElementById('emailInput').value.trim()
-            };
-
-            // Save to In-Memory Local Database
-            sessionDataStore.push(responseData);
-            console.log("Locally stored response:", responseData);
-
-            showSuccess();
-        }
-
-        function showSuccess() {
-            successOverlay.classList.add('show');
-            
-            let secondsLeft = 5;
-            resetTimerEl.textContent = secondsLeft;
-            
-            const countdown = setInterval(() => {
-                secondsLeft--;
-                resetTimerEl.textContent = secondsLeft;
-                
-                if (secondsLeft <= 0) {
-                    clearInterval(countdown);
-                    resetForm();
-                }
-            }, 1000);
-        }
-
-        function resetForm() {
-            // Reset State
-            selectedOptionIds.clear();
-            
-            // Reset Inputs
-            document.querySelectorAll('input').forEach(input => input.value = '');
-            
-            // Reset UI Visibility
-            document.querySelectorAll('.option-card').forEach(card => card.classList.remove('selected'));
-            otherInputSection.classList.remove('show');
-            contactSection.classList.remove('show');
-            submitBtn.classList.remove('active');
-            successOverlay.classList.remove('show');
-            
-            // Ensure scroll is at top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function resetInactivityTimer() {
-            clearTimeout(inactivityTimer);
-            if (!successOverlay.classList.contains('show')) {
-                inactivityTimer = setTimeout(() => {
-                    if (selectedOptionIds.size > 0 || otherTextInput.value !== '' || document.getElementById('nameInput').value !== '') {
-                        console.log("Kiosk reset due to inactivity");
-                        resetForm();
-                    }
-                }, INACTIVITY_TIMEOUT);
-            }
-        }
-
-        function toggleFullScreen() {
-            const fsIcon = document.getElementById('fs-icon');
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Fullscreen error: ${err.message}`);
-                });
-                fsIcon.classList.replace('fa-expand', 'fa-compress');
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                    fsIcon.classList.replace('fa-compress', 'fa-expand');
-                }
-            }
-        }
-
-        // Start App
-        window.onload = init;
-
-    </script>
+    window.onload = init;
+  </script>
 </body>
 </html>
