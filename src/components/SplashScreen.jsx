@@ -26,7 +26,7 @@ export default function SplashScreen() {
         <div className="absolute -inset-4 bg-brand-500 blur-[80px] opacity-20 rounded-full w-40 h-40 m-auto animate-pulse" />
         <img
           src={LOGO_URL}
-          alt="Phoneplace Logo"
+          alt="Tenacity Logo"
           className="h-20 sm:h-28 brightness-0 invert object-contain animate-pulse-logo relative z-10"
         />
         <h1 className="text-xl font-black tracking-tight drop-shadow-lg text-white mt-6 relative z-10 animate-fade-in delay-200">

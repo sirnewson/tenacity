@@ -1,6 +1,6 @@
-# Phoneplace Creator Pro
+# Tenacity Creator Studio
 
-A mobile-first React studio for creating branded Phoneplace Kenya social posters
+A mobile-first React studio for creating branded Tenacity social posters
 (Reel 9:16, Classic/Dark/Neon/New-Product 4:5, or a custom PNG template).
 Capture from camera or upload a photo, drop an editable product tag, then run the
 "magic reveal" to composite a downloadable 1080×1350 (or 1080×1920) poster.
@@ -48,4 +48,4 @@ npm run preview  # preview the production build
 
 ---
 Created by Sir Newson. Built at YXM.digital.
-Licensed between Sir Newson & Phoneplace Kenya.
+Licensed between Sir Newson & Tenacity.

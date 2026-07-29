@@ -19,7 +19,7 @@ export default function SelectStep() {
         <div className="flex flex-col items-center justify-center mb-10 animate-fade-in delay-300">
           <img
             src={LOGO_URL}
-            alt="Phoneplace Logo"
+            alt="Tenacity Logo"
             className="h-14 sm:h-20 mb-4 brightness-0 invert drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] object-contain"
           />
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight drop-shadow-lg text-white">
@@ -83,7 +83,7 @@ export default function SelectStep() {
         {/* Request Design Link */}
         <div className="mt-8 flex justify-center">
           <a
-            href="https://wa.me/254702480771?text=I'm%20from%20the%20phoneplace%20creator%20tool..i%20have%20a%20request"
+            href="https://wa.me/254702480771?text=I'm%20from%20the%20Tenacity%20creator%20tool..i%20have%20a%20request"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-brand-500/30 bg-brand-500/10 text-brand-400 hover:bg-brand-500 hover:text-white transition-all text-xs font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(34,197,94,0.15)] hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]"

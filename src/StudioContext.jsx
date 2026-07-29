@@ -872,7 +872,7 @@ export function StudioProvider({ children }) {
     if (!finalRef.current) return
     const link = document.createElement('a')
     link.href = finalRef.current
-    link.download = `Phoneplace_Poster_${Date.now()}.png`
+    link.download = `Tenacity_Poster_${Date.now()}.png`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -883,12 +883,12 @@ export function StudioProvider({ children }) {
     try {
       const res = await fetch(finalRef.current)
       const blob = await res.blob()
-      const file = new File([blob], `Phoneplace_Poster_${Date.now()}.png`, { type: 'image/png' })
+      const file = new File([blob], `Tenacity_Poster_${Date.now()}.png`, { type: 'image/png' })
 
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: 'Phoneplace Creator',
-          text: 'Check out my design from Phoneplace Creator!',
+          title: 'Tenacity Creator',
+          text: 'Check out my design from Tenacity Creator!',
           files: [file]
         })
       } else {

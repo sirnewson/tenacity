@@ -75,7 +75,7 @@ export default function SpecsModal() {
               type="text"
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              placeholder="e.g. Galaxy A37 5G"
+              placeholder="e.g. TM53"
               className="w-full bg-black/50 border border-gray-600 focus:border-brand-500 rounded-xl p-4 text-white text-lg font-bold outline-none transition-colors shadow-inner"
             />
           </div>
