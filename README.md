@@ -85,5 +85,5 @@ ignored by mobile Safari and blocked by Chrome on Android.
   the exact 4:5 / 9:16 aspect on any screen.
 
 ---
-Created by Sir Newson. Built at YXM.digital.
+Created by Sir Newson. Built at YXM Digital.
 Licensed between Sir Newson & Tenacity.

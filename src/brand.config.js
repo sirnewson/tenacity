@@ -57,6 +57,15 @@ const brand = {
   // --------------------------------------------------------------- templates
   templates: [
     {
+      id: 'reel',
+      name: 'Reel / Story',
+      sub: '9:16 Vertical',
+      file: 'reel-overlay.png',
+      size: '9:16',
+      icon: 'fa-mobile-screen',
+      iconColor: 'text-purple-300',
+    },
+    {
       id: 'footer-stripe',
       name: 'Footer Stripe',
       sub: 'Clean Footer',
@@ -454,7 +463,7 @@ const brand = {
 
   credits: [
     { label: 'Sir Newson', href: 'https://sirnewson.com' },
-    { label: 'YXM.digital', href: 'https://yxm.digital' },
+    { label: 'YXM Digital', href: 'https://yxmdigital.com' },
   ],
 }
 
