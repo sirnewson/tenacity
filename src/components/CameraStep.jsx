@@ -1,13 +1,20 @@
 import { useStudio } from '../StudioContext'
-import { cardThemes, selectCards } from '../constants'
+import { brand } from '../brand'
+import { TAG, detailLineCount, priceScale, titleScale } from '../tagLayout'
+import { QR_CORNERS, QR_SIZES } from '../qr'
 
 export default function CameraStep() {
   const s = useStudio()
   const active = s.step === 'camera'
-  const { refs, format, mode, hasSpecs, cameraAvailable, captureSize, zoom } = s
+  const { refs, format, mode, hasSpecs, cameraAvailable, captureSize, zoom, tagUrl, allCards } = s
 
   const isCamera = mode === 'camera'
-  const th = cardThemes[s.cardTheme] || cardThemes.dark
+  // Same fit rule the export uses, so the preview never lies.
+  const pScale = priceScale(s.specsPrice)
+  const tScale = titleScale(s.specsModel)
+  const detailClamp = detailLineCount(s.specsModel)
+  // The plate is sized from the capture area, so type must scale with it.
+  const plateW = Math.min((captureSize.w || 360) * 0.92, 420)
 
   const resizeHandlers = {
     onPointerDown: s.cardResizeDown,
@@ -24,18 +31,25 @@ export default function CameraStep() {
     >
       {/* Slim top label — corners stripped, everything moved to thumb reach */}
       <div
-        className="w-full px-4 pb-2 flex justify-center items-center bg-gradient-to-b from-black/80 to-transparent shrink-0"
+        className="w-full px-4 pb-2 flex justify-center items-center bg-gradient-to-b from-surface to-transparent shrink-0"
         style={{ paddingTop: 'calc(0.9rem + var(--safe-top))' }}
       >
-        <h2 className="text-xs font-black tracking-[0.3em] uppercase text-white/90 drop-shadow">
-          {format?.name || 'Studio'}
-        </h2>
+        <div className="flex flex-col items-center gap-1">
+          <h2 className="text-xs font-black tracking-[0.3em] uppercase text-ink/80 drop-shadow">
+            {format?.name || 'Studio'}
+          </h2>
+          {brand.demoMode && (
+            <p className="text-[10px] text-ink/45 font-bold uppercase tracking-wider">
+              {hasSpecs ? 'Step 3 of 4 — place the tag' : 'Step 2 of 4 — frame the photo'}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Template carousel — switch overlays without leaving the editor. */}
       <div className="w-full shrink-0 px-3 pb-2 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 w-max mx-auto">
-          {selectCards.map((card) => {
+          {allCards.map((card) => {
             const selected = card.id === format?.id
             return (
               <button
@@ -46,7 +60,7 @@ export default function CameraStep() {
                 className={`relative h-11 w-16 shrink-0 overflow-hidden rounded-lg border transition ${
                   selected
                     ? 'border-brand-400 ring-2 ring-brand-500/50'
-                    : 'border-white/15 opacity-70 hover:opacity-100'
+                    : 'border-ink/12 opacity-70 hover:opacity-100'
                 }`}
                 title={`Switch to ${card.title}`}
               >
@@ -57,6 +71,17 @@ export default function CameraStep() {
               </button>
             )
           })}
+          {brand.allowOverlayUpload && (
+            <button
+              type="button"
+              onClick={s.openOverlayModal}
+              title="Upload your own overlay"
+              className="h-11 w-16 shrink-0 rounded-lg border border-dashed border-ink/25 text-brand-300 hover:border-brand-500 hover:bg-brand-500/10 transition flex flex-col items-center justify-center gap-0.5"
+            >
+              <i className="fa-solid fa-cloud-arrow-up text-[11px]" />
+              <span className="text-[7px] font-bold uppercase tracking-wide">Overlay</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -67,7 +92,7 @@ export default function CameraStep() {
       >
         <div
           ref={refs.captureArea}
-          className="relative bg-dark-900 shadow-2xl overflow-hidden rounded-xl border border-white/5"
+          className="relative bg-ink/10 shadow-2xl overflow-hidden rounded-xl border border-ink/5"
           style={{
             width: captureSize.w ? `${captureSize.w}px` : '100%',
             height: captureSize.h ? `${captureSize.h}px` : '100%',
@@ -105,10 +130,8 @@ export default function CameraStep() {
             id="alignment-guides"
             className="absolute inset-0 pointer-events-none z-[35] opacity-0 transition-opacity duration-200"
           >
-            {/* Center vertical line */}
-            <div className="absolute top-0 bottom-0 left-1/2 w-[1px] bg-brand-500/80 -translate-x-1/2 shadow-[0_0_8px_rgba(192,38,211,0.8)]" />
-            {/* Center horizontal line */}
-            <div className="absolute left-0 right-0 top-1/2 h-[1px] bg-brand-500/80 -translate-y-1/2 shadow-[0_0_8px_rgba(192,38,211,0.8)]" />
+            <div className="align-guide top-0 bottom-0 left-1/2 w-[1px] -translate-x-1/2" />
+            <div className="align-guide left-0 right-0 top-1/2 h-[1px] -translate-y-1/2" />
           </div>
 
           {/* Ghost overlay preview — kept clearly visible for alignment */}
@@ -120,9 +143,9 @@ export default function CameraStep() {
 
           {/* Camera fallback */}
           {isCamera && !cameraAvailable && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-dark-950 z-0">
-              <i className="fa-solid fa-camera-slash text-4xl text-gray-700 mb-4" />
-              <span className="text-gray-400 text-sm px-8 text-center font-medium leading-relaxed">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface z-0">
+              <i className="fa-solid fa-camera-slash text-4xl text-white/30 mb-4" />
+              <span className="text-white/70 text-sm px-8 text-center font-medium leading-relaxed">
                 Camera unavailable or blocked.
                 <br />
                 Use the <i className="fa-solid fa-image mx-1 text-white" /> icon below
@@ -168,49 +191,118 @@ export default function CameraStep() {
 
             <div
               ref={refs.cardBg}
-              className="card-bg relative w-[min(92vw,420px)] aspect-[982/319] bg-contain bg-center bg-no-repeat"
+              className="card-bg relative aspect-[982/319] bg-contain bg-center bg-no-repeat"
               style={{
-                backgroundImage: "url('/product-tag-overlay.png')",
+                backgroundImage: `url('${tagUrl}')`,
+                // Sized off the capture area, not the viewport — a 9:16 frame is
+                // narrower than the screen, and a viewport-wide tag would spill
+                // outside the exported poster.
+                width: `${plateW}px`,
               }}
             >
-              {/* Left Side: Product Name & Details */}
-              <div 
-                className="absolute left-[12%] top-[22%] h-[56%] w-[37%] flex flex-col justify-center"
+              {/* Left Side: Title & Details */}
+              <div
+                className="absolute flex flex-col justify-start overflow-hidden"
+                style={{
+                  left: `${TAG.textLeft * 100}%`,
+                  top: `${TAG.textTop * 100}%`,
+                  width: `${TAG.textWidth * 100}%`,
+                  height: `${TAG.textHeight * 100}%`,
+                }}
               >
                 <h4
                   ref={refs.displayModel}
-                  className="relative -top-1 font-black text-[26px] leading-none tracking-tight text-white mb-1"
+                  className="relative font-black tracking-tight text-white mb-0.5 line-clamp-2 overflow-hidden"
                   style={{
+                    fontSize: `${plateW * TAG.titleSize * tScale}px`,
+                    lineHeight: 1.02,
                     textShadow: '0 2px 4px rgba(0,0,0,0.5)',
                     fontFamily: 'Manrope, Inter, sans-serif',
                   }}
                 >
                   {s.specsModel}
                 </h4>
-                <p 
+                <p
                   ref={refs.displayDetails}
-                  className="text-[11px] leading-snug text-white/90 whitespace-pre-line break-words"
-                  style={{ fontFamily: 'Manrope, Inter, sans-serif' }}
+                  className="text-white/90 whitespace-pre-line break-words overflow-hidden"
+                  style={{
+                    fontFamily: 'Manrope, Inter, sans-serif',
+                    fontSize: `${plateW * TAG.detailSize}px`,
+                    lineHeight: `${TAG.detailLine / TAG.detailSize}`,
+                    display: '-webkit-box',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: detailClamp,
+                  }}
                 >
                   {s.specsDetails}
                 </p>
               </div>
 
-              {/* Right Side: Price */}
-              <div className="absolute left-[55%] top-[20%] h-[60%] w-[38%] flex items-center justify-center relative">
-                <span className="absolute left-2 top-1 text-white font-bold text-[14px]" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.35)', fontFamily: 'Manrope, Inter, sans-serif' }}>KSH</span>
-                <div>
-                  <span 
-                    ref={refs.displayPrice}
-                    className="relative top-2 text-white text-[42px] leading-none tracking-tight"
-                    style={{ textShadow: '0 2px 4px rgba(0,0,0,0.35)', fontFamily: 'Bebas Neue, sans-serif' }}
+              {/* Right Side: Price. Currency sits inline before the number so a
+                  long price can never collide with it. */}
+              <div
+                className="absolute flex items-baseline justify-center gap-1.5"
+                style={{
+                  left: `${TAG.priceBoxLeft * 100}%`,
+                  top: `${TAG.priceBoxTop * 100}%`,
+                  width: `${TAG.priceBoxWidth * 100}%`,
+                  height: `${TAG.priceBoxHeight * 100}%`,
+                }}
+              >
+                {brand.currency && (
+                  <span
+                    className="text-white font-bold leading-none pb-1"
+                    style={{
+                      fontSize: `${plateW * TAG.currencySize * pScale}px`,
+                      textShadow: '0 1px 2px rgba(0,0,0,0.35)',
+                      fontFamily: 'Manrope, Inter, sans-serif',
+                    }}
                   >
-                    {s.specsPrice}
+                    {brand.currency}
                   </span>
-                </div>
+                )}
+                <span
+                  ref={refs.displayPrice}
+                  className="text-white leading-none tracking-tight"
+                  style={{
+                    fontSize: `${plateW * TAG.priceSize * pScale}px`,
+                    textShadow: '0 2px 4px rgba(0,0,0,0.35)',
+                    fontFamily: 'Bebas Neue, sans-serif',
+                  }}
+                >
+                  {s.specsPrice}
+                </span>
               </div>
             </div>
           </div>
+
+          {/* QR badge — same corner + size the export uses */}
+          {s.qr.on && s.qrDataUrl && (() => {
+            const spot = QR_CORNERS[s.qr.corner] || QR_CORNERS['bottom-right']
+            const short = Math.min(captureSize.w || 0, captureSize.h || 0)
+            const box = short * (QR_SIZES[s.qr.size] || QR_SIZES.M)
+            return (
+              <div
+                className="absolute z-30 rounded-[10%] bg-white shadow-lg pointer-events-none flex flex-col items-center"
+                style={{
+                  left: `${spot.x * 100}%`,
+                  top: `${spot.y * 100}%`,
+                  transform: `translate(${-spot.ax * 100}%, ${-spot.ay * 100}%)`,
+                  padding: box * 0.09,
+                }}
+              >
+                <img src={s.qrDataUrl} alt="" style={{ width: box, height: box }} />
+                {s.qr.label && (
+                  <span
+                    className="font-black text-black leading-none"
+                    style={{ fontSize: box * 0.1, paddingTop: box * 0.06, paddingBottom: box * 0.02 }}
+                  >
+                    {s.qr.label}
+                  </span>
+                )}
+              </div>
+            )
+          })()}
 
           {/* Grid + brackets */}
           <div className="camera-grid">
@@ -227,14 +319,14 @@ export default function CameraStep() {
 
       {/* Bottom Controls */}
       <div
-        className="w-full shrink-0 flex flex-col items-center bg-gradient-to-t from-dark-950 via-dark-900 to-transparent pt-3 px-5 rounded-t-3xl relative z-20"
+        className="w-full shrink-0 flex flex-col items-center bg-gradient-to-t from-surface via-surface to-transparent pt-3 px-5 rounded-t-3xl relative z-20"
         style={{ paddingBottom: 'calc(1.4rem + var(--safe-bottom))' }}
       >
-        {/* Thumb-reach control bar: Back · Magic · Flip · Tag */}
+        {/* Thumb-reach control bar: Back · Flip · Tag */}
         <div className="flex items-center justify-center gap-2.5 mb-3 flex-wrap">
           <button
             onClick={s.resetApp}
-            className="h-10 px-4 rounded-full glass-panel flex items-center gap-2 text-white/90 hover:bg-white/10 transition active:scale-95"
+            className="h-10 px-4 rounded-full glass-panel flex items-center gap-2 text-ink/80 hover:bg-ink/[0.06] transition active:scale-95"
           >
             <i className="fa-solid fa-arrow-left text-sm" />
             <span className="text-[11px] font-bold uppercase tracking-wider">Back</span>
@@ -243,7 +335,7 @@ export default function CameraStep() {
           {isCamera && cameraAvailable && (
             <button
               onClick={s.flipCamera}
-              className="h-10 w-10 rounded-full glass-panel flex items-center justify-center text-white/90 hover:bg-white/10 transition active:scale-95"
+              className="h-10 w-10 rounded-full glass-panel flex items-center justify-center text-ink/80 hover:bg-ink/[0.06] transition active:scale-95"
               aria-label="Flip camera"
             >
               <i className="fa-solid fa-camera-rotate text-sm" />
@@ -251,11 +343,49 @@ export default function CameraStep() {
           )}
 
           <button
+            onClick={() => {
+              s.setBatchMode(!s.batchMode)
+              s.showMessage(
+                s.batchMode
+                  ? 'Batch off — captures go straight to the reveal.'
+                  : 'Batch on — every capture stacks up for one export.',
+                false
+              )
+            }}
+            className={`h-10 px-4 rounded-full flex items-center gap-2 border transition active:scale-95 ${
+              s.batchMode
+                ? 'bg-brand-500 border-brand-500 text-panel'
+                : 'glass-panel border-ink/15 text-ink'
+            }`}
+          >
+            <i className="fa-solid fa-layer-group text-sm" />
+            <span className="text-[11px] font-black uppercase tracking-wider">
+              {s.batchMode ? `Batch ${s.batch.length}` : 'Batch'}
+            </span>
+          </button>
+
+          {brand.qr?.enabled !== false && (
+            <button
+              onClick={s.openQrModal}
+              className={`h-10 px-4 rounded-full flex items-center gap-2 border transition active:scale-95 ${
+                s.qr.on
+                  ? 'bg-brand-500 border-brand-500 text-panel'
+                  : 'glass-panel border-ink/15 text-ink'
+              }`}
+            >
+              <i className="fa-solid fa-qrcode text-sm" />
+              <span className="text-[11px] font-black uppercase tracking-wider">
+                {s.qr.on ? 'QR On' : 'QR'}
+              </span>
+            </button>
+          )}
+
+          <button
             onClick={s.openSpecsModal}
             className={`h-10 px-4 rounded-full flex items-center gap-2 border transition active:scale-95 ${
               hasSpecs
-                ? 'bg-brand-500/25 border-brand-500/50 text-brand-300'
-                : 'bg-brand-500/15 border-brand-500/40 text-brand-400'
+                ? 'bg-brand-500 border-brand-500 text-panel'
+                : 'glass-panel border-ink/15 text-ink'
             }`}
           >
             <i className="fa-solid fa-tags text-sm" />
@@ -285,8 +415,38 @@ export default function CameraStep() {
           </div>
         )}
 
-        <p className="text-[11px] text-center text-gray-400 font-medium mb-3 h-4">
-          {isCamera
+        {s.batchMode && s.batch.length > 0 && (
+          <div className="w-full max-w-sm mb-3 flex items-center gap-2">
+            <div className="flex-1 flex gap-1.5 overflow-x-auto no-scrollbar">
+              {s.batch.map((item, i) => (
+                <span
+                  key={item.id}
+                  className="relative h-12 w-10 shrink-0 rounded-md overflow-hidden border border-ink/15"
+                  title={item.product}
+                >
+                  <img src={item.url} alt="" className="h-full w-full object-cover" />
+                  <span className="absolute inset-x-0 bottom-0 bg-black/65 text-white text-[7px] font-black text-center leading-3">
+                    {i + 1}
+                  </span>
+                </span>
+              ))}
+            </div>
+            <button
+              onClick={() => s.switchStep('batch')}
+              className="shrink-0 h-10 px-3.5 rounded-full bg-brand-500 text-panel flex items-center gap-1.5 active:scale-95 transition"
+            >
+              <i className="fa-solid fa-layer-group text-[11px]" />
+              <span className="text-[10px] font-black uppercase tracking-wider">
+                Review {s.batch.length}
+              </span>
+            </button>
+          </div>
+        )}
+
+        <p className="text-[11px] text-center text-ink/60 font-medium mb-3 h-4">
+          {s.batchMode
+            ? 'Capture, edit the tag, capture again — they stack up.'
+            : isCamera
             ? hasSpecs
               ? 'Drag the tag to position, then Capture.'
               : 'Align subject in grid and Capture.'
@@ -296,7 +456,7 @@ export default function CameraStep() {
         </p>
 
         <div className="flex items-center justify-center w-full max-w-sm gap-10">
-          <label className="cursor-pointer w-14 h-14 rounded-full glass-panel hover:bg-white/10 flex items-center justify-center transition-colors shadow-lg shrink-0 active:scale-95">
+          <label className="cursor-pointer w-14 h-14 rounded-full glass-panel hover:bg-ink/[0.06] flex items-center justify-center transition-colors shadow-lg shrink-0 active:scale-95">
             <i className="fa-solid fa-image text-xl" />
             <input
               ref={refs.fileInput}
@@ -312,16 +472,16 @@ export default function CameraStep() {
           {/* Shutter / Confirm */}
           <button
             onClick={s.handleMainAction}
-            className="btn-capture w-[88px] h-[88px] rounded-full border-[5px] border-white flex items-center justify-center relative shadow-[0_0_30px_rgba(255,255,255,0.2)] shrink-0"
+            className="btn-capture w-[88px] h-[88px] rounded-full border-[5px] border-ink flex items-center justify-center relative shadow-[0_8px_24px_-8px_rgb(var(--ink)/0.5)] shrink-0"
             style={{
               opacity: isCamera && !cameraAvailable ? 0.3 : 1,
               pointerEvents: isCamera && !cameraAvailable ? 'none' : 'auto',
             }}
           >
             {isCamera ? (
-              <div className="w-[72px] h-[72px] rounded-full bg-white transition-all hover:scale-95" />
+              <div className="w-[72px] h-[72px] rounded-full bg-ink transition-all hover:scale-95" />
             ) : (
-              <i className="fa-solid fa-check text-4xl text-white" />
+              <i className="fa-solid fa-check text-4xl text-ink" />
             )}
           </button>
 
@@ -330,7 +490,7 @@ export default function CameraStep() {
             {mode === 'upload' && (
               <button
                 onClick={s.resetToCamera}
-                className="w-14 h-14 rounded-full glass-panel hover:bg-white/10 flex items-center justify-center transition-colors active:scale-95"
+                className="w-14 h-14 rounded-full glass-panel hover:bg-ink/[0.06] flex items-center justify-center transition-colors active:scale-95"
                 aria-label="Discard photo"
               >
                 <i className="fa-solid fa-xmark text-xl" />

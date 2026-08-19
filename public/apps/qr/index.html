@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium QR Code Studio & Scanner</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- QR Code & Scanner JS Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Main Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-gradient-to-tr from-brand-600 to-indigo-400 rounded-xl text-white shadow-lg shadow-brand-500/20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M4 8h4m12 0h.01M4 16h4m12 0h.01M4 20h4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-brand-600 to-indigo-400 bg-clip-text text-transparent">QR STUDIO</h1>
+                    <p class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Next-Gen Utility</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Mode Switcher Tabs -->
+                <div class="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center gap-1">
+                    <button id="mode-generate-btn" onclick="switchAppMode('generate')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition duration-200 flex items-center gap-1.5 bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Generator
+                    </button>
+                    <button id="mode-scan-btn" onclick="switchAppMode('scan')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition duration-200 flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M4 8h4m12 0h.01M4 16h4m12 0h.01M4 20h4"></path></svg>
+                        Scanner
+                    </button>
+                </div>
+
+                <!-- Theme Toggle Button -->
+                <button onclick="toggleDarkMode()" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition" title="Toggle Theme">
+                    <svg id="theme-icon-light" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <svg id="theme-icon-dark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Wrapper -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ================= GENERATOR SECTION ================= -->
+        <section id="generator-section" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Side Inputs & Designing -->
+            <div class="lg:col-span-7 flex flex-col gap-6">
+                <!-- QR Type Selector Grid -->
+                <div class="bg-white dark:bg-slate-950 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <h3 class="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">1. Select QR Code Type</h3>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" id="type-tabs-container">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- Structured Dynamic Form Input Fields -->
+                <div class="bg-white dark:bg-slate-950 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 right-0 h-1.5 w-full bg-gradient-to-r from-brand-500 to-indigo-500"></div>
+                    <h3 class="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">2. Fill QR Content</h3>
+                    
+                    <div id="dynamic-fields-wrapper" class="space-y-4">
+                        <!-- Dynamic inputs will populate here based on selected type -->
+                    </div>
+                </div>
+
+                <!-- Accordion Style Design Options -->
+                <div class="bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
+                    
+                    <!-- ACCORDION: COLORS -->
+                    <div class="accordion-item">
+                        <button onclick="toggleAccordion('acc-colors')" class="w-full px-6 py-4 flex items-center justify-between text-left font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition">
+                            <span class="flex items-center gap-2.5">
+                                <span class="p-1.5 bg-rose-500/10 text-rose-500 rounded-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg></span>
+                                Colors & Gradients
+                            </span>
+                            <svg id="acc-colors-icon" class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="acc-colors" class="hidden p-6 bg-slate-50/50 dark:bg-slate-900/20 border-t border-slate-100 dark:border-slate-800 space-y-6">
+                            
+                            <!-- Premium Theme Presets -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2.5">Ready-to-Use Color Presets</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                    <button onclick="applyPreset('stealth')" class="p-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl hover:scale-[1.03] transition flex items-center gap-2 text-xs font-semibold">
+                                        <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-400"></span> Classic
+                                    </button>
+                                    <button onclick="applyPreset('cyber')" class="p-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl hover:scale-[1.03] transition flex items-center gap-2 text-xs font-semibold">
+                                        <span class="w-4 h-4 rounded-full bg-gradient-to-tr from-fuchsia-500 to-indigo-500"></span> Cyber
+                                    </button>
+                                    <button onclick="applyPreset('ocean')" class="p-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl hover:scale-[1.03] transition flex items-center gap-2 text-xs font-semibold">
+                                        <span class="w-4 h-4 rounded-full bg-gradient-to-tr from-blue-500 to-emerald-400"></span> Ocean
+                                    </button>
+                                    <button onclick="applyPreset('sunset')" class="p-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl hover:scale-[1.03] transition flex items-center gap-2 text-xs font-semibold">
+                                        <span class="w-4 h-4 rounded-full bg-gradient-to-tr from-amber-500 to-rose-500"></span> Sunset
+                                    </button>
+                                    <button onclick="applyPreset('forest')" class="p-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl hover:scale-[1.03] transition flex items-center gap-2 text-xs font-semibold">
+                                        <span class="w-4 h-4 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400"></span> Forest
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Foreground Block -->
+                                <div class="bg-white dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Foreground Style</h4>
+                                        <select id="fg-type" onchange="toggleColorTypes(); triggerRegenerate();" class="text-xs font-bold border-none bg-slate-100 dark:bg-slate-800 py-1 px-2.5 rounded-lg text-brand-600 dark:text-brand-400 outline-none">
+                                            <option value="solid">Solid Color</option>
+                                            <option value="gradient">Gradient</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <div class="flex-1">
+                                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Color 1 (Main)</label>
+                                            <div class="flex items-center gap-2 border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50 dark:bg-slate-900">
+                                                <input type="color" id="fg-color-1" value="#111827" oninput="triggerRegenerate()" class="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-none">
+                                                <input type="text" id="fg-color-1-hex" value="#111827" oninput="syncHexInput('fg-color-1')" class="w-full text-xs font-mono bg-transparent border-none uppercase">
+                                            </div>
+                                        </div>
+                                        <div class="flex-1 id-fg-grad hidden">
+                                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Color 2</label>
+                                            <div class="flex items-center gap-2 border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50 dark:bg-slate-900">
+                                                <input type="color" id="fg-color-2" value="#4f46e5" oninput="triggerRegenerate()" class="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-none">
+                                                <input type="text" id="fg-color-2-hex" value="#4F46E5" oninput="syncHexInput('fg-color-2')" class="w-full text-xs font-mono bg-transparent border-none uppercase">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="id-fg-grad hidden">
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Gradient Type</label>
+                                        <select id="fg-grad-dir" onchange="triggerRegenerate()" class="w-full text-xs font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-2 px-3 rounded-xl">
+                                            <option value="linear-diag">Linear Diagonal</option>
+                                            <option value="linear-horiz">Linear Horizontal</option>
+                                            <option value="linear-vert">Linear Vertical</option>
+                                            <option value="radial">Radial Glow</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Background Block -->
+                                <div class="bg-white dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Background Style</h4>
+                                        <select id="bg-type" onchange="toggleColorTypes(); triggerRegenerate();" class="text-xs font-bold border-none bg-slate-100 dark:bg-slate-800 py-1 px-2.5 rounded-lg text-brand-600 dark:text-brand-400 outline-none">
+                                            <option value="solid">Solid Color</option>
+                                            <option value="transparent">Transparent</option>
+                                        </select>
+                                    </div>
+                                    <div class="id-bg-solid">
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Background Color</label>
+                                        <div class="flex items-center gap-2 border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50 dark:bg-slate-900">
+                                            <input type="color" id="bg-color" value="#ffffff" oninput="triggerRegenerate()" class="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-none">
+                                            <input type="text" id="bg-color-hex" value="#FFFFFF" oninput="syncHexInput('bg-color')" class="w-full text-xs font-mono bg-transparent border-none uppercase">
+                                        </div>
+                                    </div>
+                                    <div class="id-bg-solid">
+                                        <p class="text-[10px] text-slate-400 leading-normal mt-1 flex items-start gap-1">
+                                            <svg class="w-3 h-3 flex-shrink-0 mt-0.5 text-brand-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                                            High contrast between foreground and background yields the best scan results.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Eye Frame & Core customization -->
+                            <div class="bg-white dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Custom Eye Coloring</h4>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="custom-eye-colors" onchange="toggleEyeCustomizer(); triggerRegenerate();" class="sr-only peer">
+                                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                                    </label>
+                                </div>
+                                <div id="eye-color-pickers" class="grid grid-cols-2 gap-4 hidden">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Outer Eye Frame</label>
+                                        <div class="flex items-center gap-2 border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50 dark:bg-slate-900">
+                                            <input type="color" id="eye-outer-color" value="#4338ca" oninput="triggerRegenerate()" class="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-none">
+                                            <input type="text" id="eye-outer-hex" value="#4338CA" oninput="syncHexInput('eye-outer-color')" class="w-full text-xs font-mono bg-transparent border-none uppercase">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Inner Eye Core</label>
+                                        <div class="flex items-center gap-2 border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50 dark:bg-slate-900">
+                                            <input type="color" id="eye-inner-color" value="#e11d48" oninput="triggerRegenerate()" class="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-none">
+                                            <input type="text" id="eye-inner-hex" value="#E11D48" oninput="syncHexInput('eye-inner-color')" class="w-full text-xs font-mono bg-transparent border-none uppercase">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- ACCORDION: SHAPES -->
+                    <div class="accordion-item">
+                        <button onclick="toggleAccordion('acc-shapes')" class="w-full px-6 py-4 flex items-center justify-between text-left font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition">
+                            <span class="flex items-center gap-2.5">
+                                <span class="p-1.5 bg-indigo-500/10 text-indigo-500 rounded-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg></span>
+                                QR Dot & Eye Styling
+                            </span>
+                            <svg id="acc-shapes-icon" class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="acc-shapes" class="hidden p-6 bg-slate-50/50 dark:bg-slate-900/20 border-t border-slate-100 dark:border-slate-800 space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">QR Dot Pattern Style</label>
+                                    <select id="dot-style" onchange="triggerRegenerate()" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-semibold text-xs outline-none">
+                                        <option value="square">Sharp Squares (Standard)</option>
+                                        <option value="rounded">Rounded Squares (Smooth)</option>
+                                        <option value="dots">Circular Dots (Modern)</option>
+                                        <option value="classy">Classy Leaves (Elegant)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Corner Eyes Outer Frame</label>
+                                    <select id="eye-style" onchange="triggerRegenerate()" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-semibold text-xs outline-none">
+                                        <option value="square">Classic Sharp Square</option>
+                                        <option value="rounded">Elegant Rounded Square</option>
+                                        <option value="smooth">Minimal Circle Ring</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACCORDION: BRANDING / LOGO -->
+                    <div class="accordion-item">
+                        <button onclick="toggleAccordion('acc-logo')" class="w-full px-6 py-4 flex items-center justify-between text-left font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition">
+                            <span class="flex items-center gap-2.5">
+                                <span class="p-1.5 bg-amber-500/10 text-amber-500 rounded-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></span>
+                                Brand Logo Overlay
+                            </span>
+                            <svg id="acc-logo-icon" class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="acc-logo" class="hidden p-6 bg-slate-50/50 dark:bg-slate-900/20 border-t border-slate-100 dark:border-slate-800 space-y-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Enable Center Logo Overlay</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="logo-enabled" onchange="toggleLogoSettings(); triggerRegenerate();" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                                </label>
+                            </div>
+
+                            <div id="logo-customizer-block" class="space-y-4 hidden">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <!-- Preset Logos -->
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Select Icon Preset</label>
+                                        <select id="logo-preset" onchange="toggleCustomLogoUpload(); triggerRegenerate();" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-semibold text-xs outline-none">
+                                            <option value="none">No Preset (Upload custom instead)</option>
+                                            <option value="web" selected>🌐 Global Web Link</option>
+                                            <option value="wifi">📶 Modern Wi-Fi Connection</option>
+                                            <option value="mail">📧 Premium Contact Mail</option>
+                                            <option value="phone">📞 Voice Direct Call</option>
+                                            <option value="github">🐱 Developer GitHub Link</option>
+                                            <option value="bitcoin">🪙 Bitcoin Wallet</option>
+                                        </select>
+                                    </div>
+                                    <!-- Custom Image Upload -->
+                                    <div id="custom-logo-upload-wrapper">
+                                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Upload Custom Image (.PNG, .JPG)</label>
+                                        <input type="file" id="logo-file" accept="image/*" onchange="handleLogoUpload()" class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-indigo-950 dark:file:text-indigo-200 cursor-pointer">
+                                    </div>
+                                </div>
+
+                                <!-- Logo scale controls -->
+                                <div class="bg-white dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Logo Scale Size</label>
+                                        <span id="logo-size-badge" class="text-xs font-bold text-brand-600 dark:text-indigo-400">20%</span>
+                                    </div>
+                                    <input type="range" id="logo-size" min="12" max="28" value="20" oninput="updateLogoScaleBadge(); triggerRegenerate();" class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 leading-relaxed">
+                                        Keep sizes around 15-20% to prevent covering too much scan data. High Error Correction helps maintain high readability.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACCORDION: ADVANCED PARAMS -->
+                    <div class="accordion-item">
+                        <button onclick="toggleAccordion('acc-advanced')" class="w-full px-6 py-4 flex items-center justify-between text-left font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition">
+                            <span class="flex items-center gap-2.5">
+                                <span class="p-1.5 bg-slate-500/10 text-slate-500 rounded-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg></span>
+                                Advanced QR Parameters
+                            </span>
+                            <svg id="acc-advanced-icon" class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="acc-advanced" class="hidden p-6 bg-slate-50/50 dark:bg-slate-900/20 border-t border-slate-100 dark:border-slate-800 space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Error Correction Capability</label>
+                                    <select id="ec-level" onchange="triggerRegenerate()" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-semibold text-xs outline-none">
+                                        <option value="H" selected>High Recovery (~30% damage tolerance)</option>
+                                        <option value="Q">Quarter Recovery (~25% damage tolerance)</option>
+                                        <option value="M">Medium Recovery (~15% damage tolerance)</option>
+                                        <option value="L">Low Recovery (~7% damage tolerance)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Pixel Export Resolution</label>
+                                    <select id="export-size" onchange="triggerRegenerate()" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-semibold text-xs outline-none">
+                                        <option value="512">512 x 512 px (Fast Preview)</option>
+                                        <option value="1024" selected>1024 x 1024 px (High Quality HD)</option>
+                                        <option value="2048">2048 x 2048 px (Pro Vector/Print-ready)</option>
+                                        <option value="4096">4096 x 4096 px (Massive 4K Print)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Right Side Live Preview, Download & History Actions -->
+            <div class="lg:col-span-5 flex flex-col gap-6">
+                <!-- Floating Premium Preview Card -->
+                <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center shadow-lg relative overflow-hidden">
+                    
+                    <div class="absolute top-4 left-4">
+                        <span id="verification-badge" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            Analyzing...
+                        </span>
+                    </div>
+
+                    <div class="absolute top-4 right-4 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500">Live Preview</span>
+                    </div>
+
+                    <!-- Canvas Rendering Container -->
+                    <div class="w-full max-w-[280px] aspect-square relative bg-white rounded-3xl p-4 shadow-xl border border-slate-100 dark:border-slate-800/80 mt-8 mb-6 flex items-center justify-center">
+                        <canvas id="qr-canvas" class="w-full h-full object-contain"></canvas>
+                    </div>
+
+                    <!-- Scan Warning message overlay -->
+                    <p id="verification-msg" class="text-xs text-slate-400 dark:text-slate-500 leading-normal max-w-sm mb-6">
+                        Live checker verifies that high-speed scan capability works with this current contrast and custom patterns.
+                    </p>
+
+                    <!-- Export Selection Controls -->
+                    <div class="w-full flex flex-col sm:flex-row gap-2 mt-2">
+                        <button onclick="downloadQR('png')" class="flex-1 px-5 py-3.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 transition flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Export PNG
+                        </button>
+                        <button onclick="downloadQR('jpeg')" class="flex-1 px-5 py-3.5 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 font-bold rounded-2xl transition flex items-center justify-center gap-2">
+                            Export JPEG
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Simulative Dynamic Dashboard Details -->
+                <div class="bg-white dark:bg-slate-950 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">SaaS Dynamic Tracking Preview</h4>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/10 text-brand-500 uppercase">Demo</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-100 dark:border-slate-800/60">
+                            <span class="text-[10px] text-slate-400 font-semibold block uppercase">Total Scans</span>
+                            <span class="text-lg font-bold block mt-1 text-slate-800 dark:text-slate-100" id="stat-scans">2,845</span>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-100 dark:border-slate-800/60">
+                            <span class="text-[10px] text-slate-400 font-semibold block uppercase">Conversion</span>
+                            <span class="text-lg font-bold block mt-1 text-emerald-500" id="stat-conversion">42.8%</span>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-100 dark:border-slate-800/60">
+                            <span class="text-[10px] text-slate-400 font-semibold block uppercase">Device Type</span>
+                            <span class="text-lg font-bold block mt-1 text-indigo-500" id="stat-device">iOS</span>
+                        </div>
+                    </div>
+                    <!-- Small Spark chart -->
+                    <div class="h-10 flex items-end gap-1 px-1">
+                        <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-[15%]"></div>
+                        <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-[40%]"></div>
+                        <div class="w-full bg-slate-300 dark:bg-slate-700 rounded-full h-[30%]"></div>
+                        <div class="w-full bg-indigo-500 rounded-full h-[75%]"></div>
+                        <div class="w-full bg-indigo-500 rounded-full h-[65%]"></div>
+                        <div class="w-full bg-indigo-600 rounded-full h-[95%]"></div>
+                    </div>
+                </div>
+
+                <!-- History Column Panel -->
+                <div class="bg-white dark:bg-slate-950 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Session Creation Log</h4>
+                        <button onclick="clearSessionHistory()" class="text-xs font-bold text-rose-500 hover:underline">Clear</button>
+                    </div>
+                    <div id="history-timeline" class="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                        <p class="text-xs text-slate-400 text-center py-6">Your creations in this session will appear here.</p>
+                    </div>
+                </div>
+
+                <!-- Offer Cloud database upgrade -->
+                <div class="p-5 bg-gradient-to-r from-brand-600/10 to-indigo-600/10 border border-brand-500/20 rounded-3xl text-center space-y-2">
+                    <p class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">🔒 Want Permanent Cloud Sync?</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Ask me to add "cloud saving features" so you can backup your custom generated templates and tracking stats across different devices!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SCANNER SECTION ================= -->
+        <section id="scanner-section" class="hidden max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Left Panel Camera & Capture -->
+            <div class="bg-white dark:bg-slate-950 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                <h3 class="text-sm font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Direct QR Reader</h3>
+                
+                <!-- Web camera view -->
+                <div class="relative rounded-2xl bg-slate-900 overflow-hidden aspect-video border border-slate-200 dark:border-slate-800 flex items-center justify-center">
+                    <div id="video-container" class="hidden w-full h-full relative">
+                        <video id="scanner-video" class="w-full h-full object-cover"></video>
+                        <!-- Scanner overlay effect -->
+                        <div class="absolute inset-x-0 top-0 h-0.5 bg-emerald-500 shadow-[0_0_12px_#10b981] animate-bounce duration-3000"></div>
+                        <div class="absolute inset-0 border-[30px] border-black/40"></div>
+                    </div>
+
+                    <div id="scanner-placeholder" class="text-center p-6 space-y-4">
+                        <span class="inline-flex p-4 bg-slate-800 rounded-full text-slate-400">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                        </span>
+                        <div class="space-y-1">
+                            <h4 class="font-bold text-sm text-slate-300">Live Device Camera Feed</h4>
+                            <p class="text-xs text-slate-500 max-w-xs mx-auto">Click below to activate camera permissions and sweep your environment.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button id="camera-start-btn" onclick="toggleScannerCamera(true)" class="flex-1 py-3 px-4 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        Start Camera Scan
+                    </button>
+                    <button id="camera-stop-btn" onclick="toggleScannerCamera(false)" class="hidden flex-1 py-3 px-4 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Stop Feed
+                    </button>
+                </div>
+
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                    <span class="flex-shrink mx-4 text-slate-400 font-bold text-[10px] uppercase tracking-widest">Or Import Image</span>
+                    <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                </div>
+
+                <!-- Image Upload Zone -->
+                <div class="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-2xl p-6 text-center cursor-pointer transition relative" id="scanner-dropzone">
+                    <input type="file" id="scan-file" accept="image/*" onchange="handleScanImageUpload()" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                    <div class="space-y-2 pointer-events-none">
+                        <span class="inline-flex p-3 bg-indigo-500/10 text-indigo-500 rounded-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </span>
+                        <div class="text-xs font-bold text-slate-600 dark:text-slate-300">Drag/Drop or Browse Image file</div>
+                        <p class="text-[10px] text-slate-400">Supports standard screenshot or photo PNG / JPEG containing readable QR.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel Scanned Outputs -->
+            <div class="bg-white dark:bg-slate-950 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                <div class="space-y-4">
+                    <h3 class="text-sm font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Parsed Result Data</h3>
+                    
+                    <div id="scan-empty-state" class="text-center py-16 space-y-2">
+                        <p class="text-slate-400 text-xs">Waiting for scanned input...</p>
+                        <p class="text-[10px] text-slate-500 max-w-[240px] mx-auto">Start the camera feed or import a file to instantly decode and structure the details.</p>
+                    </div>
+
+                    <!-- Result Panel Content (Only visible after scan) -->
+                    <div id="scan-result-card" class="hidden space-y-4">
+                        <div class="flex items-center gap-2">
+                            <span id="scan-type-badge" class="px-3 py-1 bg-brand-500/10 text-brand-500 rounded-full font-bold text-[10px] uppercase tracking-wider">TEXT</span>
+                            <span class="text-xs text-slate-400" id="scan-timestamp">Just Now</span>
+                        </div>
+
+                        <!-- Structured dynamic details visualizer -->
+                        <div id="scan-detailed-fields" class="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800/60 divide-y divide-slate-100 dark:divide-slate-800 space-y-2.5">
+                            <!-- Populated dynamically by JS -->
+                        </div>
+
+                        <!-- Raw Text Output Block -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Raw Text Value</label>
+                            <div class="relative bg-slate-950 text-slate-300 font-mono text-xs p-4 rounded-2xl border border-slate-800 flex items-start justify-between gap-3 overflow-x-auto">
+                                <span id="scan-raw-text" class="break-all whitespace-pre-wrap">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Actions -->
+                <div id="scan-actions-panel" class="hidden grid grid-cols-2 gap-2 pt-6">
+                    <button onclick="copyScannedToClipboard()" class="py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                        Copy Raw Content
+                    </button>
+                    <a id="scan-action-link" target="_blank" href="#" class="py-3.5 px-4 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2 text-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        Open Action Link
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Premium Footer Attribution -->
+        <footer class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800/80 text-center">
+            <p class="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wide">
+                Engineered with precision by 
+                <a href="https://yxm.digital" target="_blank" rel="noopener noreferrer" class="font-extrabold text-brand-600 dark:text-indigo-400 hover:text-brand-700 dark:hover:text-indigo-300 hover:underline transition-all duration-200">
+                    Yxm.digital
+                </a>
+            </p>
+        </footer>
+
+    </main>
+
+    <!-- Global Application Scripts -->
+    <script>
+        // State variables
+        let appMode = 'generate';
+        let currentTabId = 'url';
+        let customLogoBase64 = null;
+        let sessionHistory = [];
+        let autoRegenTimeout = null;
+
+        // Structured Tabs Configuration for inputs
+        const TABS = {
+            url: {
+                title: 'URL Link',
+                icon: '🌐',
+                fields: [
+                    { id: 'url-value', label: 'Website URL', type: 'text', placeholder: 'https://example.com', default: 'https://google.com' }
+                ],
+                formatter: (fields) => {
+                    let val = fields['url-value'].trim();
+                    if (val && !/^https?:\/\//i.test(val)) {
+                        val = 'https://' + val;
+                    }
+                    return val;
+                }
+            },
+            wifi: {
+                title: 'Wi-Fi Network',
+                icon: '📶',
+                fields: [
+                    { id: 'wifi-ssid', label: 'Network SSID (Name)', type: 'text', placeholder: 'Home-WiFi_5G', default: 'Studio_Guest' },
+                    { id: 'wifi-password', label: 'Password', type: 'password', placeholder: '••••••••', default: 'studio99' },
+                    { id: 'wifi-security', label: 'Security Format', type: 'select', options: [{v:'WPA', l:'WPA/WPA2'}, {v:'WEP', l:'WEP'}, {v:'nopass', l:'No Security (Open)'}], default: 'WPA' },
+                    { id: 'wifi-hidden', label: 'Hidden Network SSID', type: 'checkbox', default: false }
+                ],
+                formatter: (fields) => {
+                    const ssid = fields['wifi-ssid'].trim();
+                    const pass = fields['wifi-password'].trim();
+                    const sec = fields['wifi-security'];
+                    const hidden = fields['wifi-hidden'] ? 'true' : '';
+                    return `WIFI:S:${ssid};T:${sec};P:${pass};H:${hidden};;`;
+                }
+            },
+            email: {
+                title: 'Contact Mail',
+                icon: '📧',
+                fields: [
+                    { id: 'email-to', label: 'Recipient Email Address', type: 'text', placeholder: 'hello@agency.com', default: 'contact@designstudio.io' },
+                    { id: 'email-subject', label: 'Email Subject Line', type: 'text', placeholder: 'Collaboration Request', default: 'Hello Studio team!' },
+                    { id: 'email-body', label: 'Message Body Outline', type: 'textarea', placeholder: 'Enter standard message preset...', default: 'I scanned your QR code and would love to collaborate!' }
+                ],
+                formatter: (fields) => {
+                    const to = fields['email-to'].trim();
+                    const sub = encodeURIComponent(fields['email-subject'].trim());
+                    const body = encodeURIComponent(fields['email-body'].trim());
+                    return `mailto:${to}?subject=${sub}&body=${body}`;
+                }
+            },
+            phone: {
+                title: 'Direct Call',
+                icon: '📞',
+                fields: [
+                    { id: 'phone-number', label: 'Direct Telephone Number', type: 'text', placeholder: '+1 (555) 000-0000', default: '+15551234567' }
+                ],
+                formatter: (fields) => {
+                    return `tel:${fields['phone-number'].trim().replace(/\s+/g, '')}`;
+                }
+            },
+            text: {
+                title: 'Plain Text',
+                icon: '📝',
+                fields: [
+                    { id: 'text-value', label: 'Raw text value', type: 'textarea', placeholder: 'Type custom text, messages, secret codes or raw content here...', default: 'Welcome to QR Code Studio! This text was decoded instantly in-browser.' }
+                ],
+                formatter: (fields) => fields['text-value']
+            },
+            crypto: {
+                title: 'Crypto Wallet',
+                icon: '🪙',
+                fields: [
+                    { id: 'crypto-address', label: 'Wallet Address', type: 'text', placeholder: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', default: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa' },
+                    { id: 'crypto-coin', label: 'Coin Network', type: 'select', options: [{v:'bitcoin', l:'Bitcoin (BTC)'}, {v:'ethereum', l:'Ethereum (ETH)'}, {v:'solana', l:'Solana (SOL)'}], default: 'bitcoin' },
+                    { id: 'crypto-amount', label: 'Payment Amount (Optional)', type: 'number', placeholder: '0.05', default: '' }
+                ],
+                formatter: (fields) => {
+                    const coin = fields['crypto-coin'];
+                    const addr = fields['crypto-address'].trim();
+                    const amt = fields['crypto-amount'].trim();
+                    return `${coin}:${addr}${amt ? '?amount=' + amt : ''}`;
+                }
+            }
+        };
+
+        // Initialize Core Features
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTypeTabs();
+            switchTab('url');
+            applyPreset('cyber');
+            
+            // Randomize analytics stats
+            document.getElementById('stat-scans').innerText = Math.floor(Math.random() * 5000 + 1200).toLocaleString();
+            document.getElementById('stat-conversion').innerText = (Math.random() * 25 + 25).toFixed(1) + '%';
+        });
+
+        // Theme controllers
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const darkIcon = document.getElementById('theme-icon-dark');
+            const lightIcon = document.getElementById('theme-icon-light');
+            
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                darkIcon.classList.remove('hidden');
+                lightIcon.classList.add('hidden');
+            } else {
+                html.classList.add('dark');
+                darkIcon.classList.add('hidden');
+                lightIcon.classList.remove('hidden');
+            }
+            triggerRegenerate();
+        }
+
+        // Accordion functionality
+        function toggleAccordion(id) {
+            const item = document.getElementById(id);
+            const icon = document.getElementById(id + '-icon');
+            const isHidden = item.classList.contains('hidden');
+
+            // Close other items if desired, but toggle single item is nicer
+            if (isHidden) {
+                item.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                item.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        // Switch modes (Generate vs Scan)
+        function switchAppMode(mode) {
+            appMode = mode;
+            const genBtn = document.getElementById('mode-generate-btn');
+            const scanBtn = document.getElementById('mode-scan-btn');
+            const genSect = document.getElementById('generator-section');
+            const scanSect = document.getElementById('scanner-section');
+
+            if (mode === 'generate') {
+                genBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition duration-200 flex items-center gap-1.5 bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm";
+                scanBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition duration-200 flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200";
+                genSect.classList.remove('hidden');
+                scanSect.classList.add('hidden');
+                toggleScannerCamera(false); // Make sure camera is shut down
+            } else {
+                scanBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition duration-200 flex items-center gap-1.5 bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm";
+                genBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition duration-200 flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200";
+                genSect.classList.add('hidden');
+                scanSect.classList.remove('hidden');
+            }
+        }
+
+        // Render Type Tab Selection Bar
+        function renderTypeTabs() {
+            const wrapper = document.getElementById('type-tabs-container');
+            wrapper.innerHTML = '';
+
+            Object.keys(TABS).forEach(key => {
+                const item = TABS[key];
+                const btn = document.createElement('button');
+                btn.id = `type-tab-${key}`;
+                btn.onclick = () => switchTab(key);
+                btn.className = "flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition hover:scale-[1.03]";
+                btn.innerHTML = `
+                    <span class="text-xl mb-1.5">${item.icon}</span>
+                    <span class="text-[10px] font-bold tracking-tight whitespace-nowrap">${item.title.split(' ')[1] || item.title}</span>
+                `;
+                wrapper.appendChild(btn);
+            });
+        }
+
+        // Switch custom data format tabs
+        function switchTab(key) {
+            currentTabId = key;
+            const tabs = Object.keys(TABS);
+            
+            tabs.forEach(tKey => {
+                const el = document.getElementById(`type-tab-${tKey}`);
+                if (tKey === key) {
+                    el.className = "flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-indigo-500 bg-indigo-500/5 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm transition scale-[1.03]";
+                } else {
+                    el.className = "flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition";
+                }
+            });
+
+            // Populate Form Inputs
+            renderFields(TABS[key]);
+            triggerRegenerate();
+        }
+
+        // Render input fields inside form container
+        function renderFields(tabConfig) {
+            const wrapper = document.getElementById('dynamic-fields-wrapper');
+            wrapper.innerHTML = '';
+
+            tabConfig.fields.forEach(field => {
+                const group = document.createElement('div');
+                group.className = "space-y-1.5";
+
+                const label = document.createElement('label');
+                label.className = "block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest";
+                label.innerText = field.label;
+                group.appendChild(label);
+
+                let input;
+                if (field.type === 'textarea') {
+                    input = document.createElement('textarea');
+                    input.rows = 3;
+                    input.placeholder = field.placeholder;
+                    input.className = "w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 focus:bg-white dark:focus:bg-slate-950 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 outline-none transition";
+                    input.value = field.default;
+                    input.oninput = triggerRegenerate;
+                } else if (field.type === 'select') {
+                    input = document.createElement('select');
+                    input.className = "w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 focus:bg-white dark:focus:bg-slate-950 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 outline-none transition font-semibold";
+                    field.options.forEach(opt => {
+                        const option = document.createElement('option');
+                        option.value = opt.v;
+                        option.innerText = opt.l;
+                        input.appendChild(option);
+                    });
+                    input.value = field.default;
+                    input.onchange = triggerRegenerate;
+                } else if (field.type === 'checkbox') {
+                    group.className = "flex items-center gap-3 py-1";
+                    label.className = "text-xs font-bold text-slate-500 dark:text-slate-400 cursor-pointer select-none";
+                    
+                    input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.checked = field.default;
+                    input.className = "w-4 h-4 rounded text-brand-600 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-brand-500 cursor-pointer";
+                    input.onchange = triggerRegenerate;
+                    
+                    // Insert checkbox before label for visual alignment
+                    group.appendChild(input);
+                    group.appendChild(label);
+                    wrapper.appendChild(group);
+                    input.id = field.id;
+                    return;
+                } else {
+                    input = document.createElement('input');
+                    input.type = field.type;
+                    input.placeholder = field.placeholder;
+                    input.className = "w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 focus:bg-white dark:focus:bg-slate-950 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 outline-none transition";
+                    input.value = field.default;
+                    input.oninput = triggerRegenerate;
+                }
+
+                input.id = field.id;
+                group.appendChild(input);
+                wrapper.appendChild(group);
+            });
+        }
+
+        // Get value from dynamic input fields
+        function getQRCodeText() {
+            const tabConfig = TABS[currentTabId];
+            const fieldsData = {};
+            tabConfig.fields.forEach(field => {
+                const el = document.getElementById(field.id);
+                if (el) {
+                    fieldsData[field.id] = el.type === 'checkbox' ? el.checked : el.value;
+                }
+            });
+            return tabConfig.formatter(fieldsData);
+        }
+
+        // UI toggles & Hex input sync
+        function toggleColorTypes() {
+            const fgType = document.getElementById('fg-type').value;
+            const bgType = document.getElementById('bg-type').value;
+
+            document.querySelectorAll('.id-fg-grad').forEach(el => {
+                fgType === 'gradient' ? el.classList.remove('hidden') : el.classList.add('hidden');
+            });
+            document.querySelectorAll('.id-bg-solid').forEach(el => {
+                bgType === 'solid' ? el.classList.remove('hidden') : el.classList.add('hidden');
+            });
+        }
+
+        function toggleEyeCustomizer() {
+            const checked = document.getElementById('custom-eye-colors').checked;
+            const block = document.getElementById('eye-color-pickers');
+            checked ? block.classList.remove('hidden') : block.classList.add('hidden');
+        }
+
+        function toggleLogoSettings() {
+            const enabled = document.getElementById('logo-enabled').checked;
+            const block = document.getElementById('logo-customizer-block');
+            enabled ? block.classList.remove('hidden') : block.classList.add('hidden');
+        }
+
+        function toggleCustomLogoUpload() {
+            const preset = document.getElementById('logo-preset').value;
+            const wrapper = document.getElementById('custom-logo-upload-wrapper');
+            preset === 'none' ? wrapper.classList.remove('hidden') : wrapper.classList.add('hidden');
+        }
+
+        function updateLogoScaleBadge() {
+            const val = document.getElementById('logo-size').value;
+            document.getElementById('logo-size-badge').innerText = val + '%';
+        }
+
+        function syncHexInput(pickerId) {
+            const picker = document.getElementById(pickerId);
+            const hex = document.getElementById(pickerId + '-hex');
+            if (hex && picker) {
+                if (/^#[0-9A-F]{6}$/i.test(hex.value)) {
+                    picker.value = hex.value;
+                    triggerRegenerate();
+                }
+            }
+        }
+
+        // Sync colors back to text hex values
+        function syncHexFromPicker() {
+            const pickers = ['fg-color-1', 'fg-color-2', 'bg-color', 'eye-outer-color', 'eye-inner-color'];
+            pickers.forEach(id => {
+                const picker = document.getElementById(id);
+                const hex = document.getElementById(id + '-hex');
+                if (picker && hex) {
+                    hex.value = picker.value.toUpperCase();
+                }
+            });
+        }
+
+        // Apply Design Presets
+        function applyPreset(theme) {
+            const fgType = document.getElementById('fg-type');
+            const fg1 = document.getElementById('fg-color-1');
+            const fg2 = document.getElementById('fg-color-2');
+            const bgType = document.getElementById('bg-type');
+            const bg = document.getElementById('bg-color');
+            const dotStyle = document.getElementById('dot-style');
+            const eyeStyle = document.getElementById('eye-style');
+            const customEyes = document.getElementById('custom-eye-colors');
+            const eyeOuter = document.getElementById('eye-outer-color');
+            const eyeInner = document.getElementById('eye-inner-color');
+
+            // Default configs reset
+            customEyes.checked = false;
+            bgType.value = 'solid';
+
+            if (theme === 'stealth') {
+                fgType.value = 'solid';
+                fg1.value = document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a';
+                bg.value = document.documentElement.classList.contains('dark') ? '#020617' : '#ffffff';
+                dotStyle.value = 'square';
+                eyeStyle.value = 'square';
+            } else if (theme === 'cyber') {
+                fgType.value = 'gradient';
+                fg1.value = '#db2777'; // hot pink
+                fg2.value = '#6366f1'; // violet
+                bg.value = document.documentElement.classList.contains('dark') ? '#090514' : '#ffffff';
+                dotStyle.value = 'classy';
+                eyeStyle.value = 'rounded';
+                customEyes.checked = true;
+                eyeOuter.value = '#db2777';
+                eyeInner.value = '#6366f1';
+            } else if (theme === 'ocean') {
+                fgType.value = 'gradient';
+                fg1.value = '#2563eb';
+                fg2.value = '#10b981';
+                bg.value = '#ffffff';
+                dotStyle.value = 'dots';
+                eyeStyle.value = 'smooth';
+            } else if (theme === 'sunset') {
+                fgType.value = 'gradient';
+                fg1.value = '#ea580c';
+                fg2.value = '#db2777';
+                bg.value = '#ffffff';
+                dotStyle.value = 'rounded';
+                eyeStyle.value = 'rounded';
+            } else if (theme === 'forest') {
+                fgType.value = 'gradient';
+                fg1.value = '#059669';
+                fg2.value = '#06b6d4';
+                bg.value = '#f0fdf4';
+                dotStyle.value = 'classy';
+                eyeStyle.value = 'rounded';
+            }
+
+            toggleColorTypes();
+            toggleEyeCustomizer();
+            syncHexFromPicker();
+            triggerRegenerate();
+        }
+
+        // Custom logo upload file handling
+        function handleLogoUpload() {
+            const file = document.getElementById('logo-file').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    customLogoBase64 = e.target.result;
+                    triggerRegenerate();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Debounce render loops to avoid browser freezing while typing
+        function triggerRegenerate() {
+            if (autoRegenTimeout) clearTimeout(autoRegenTimeout);
+            autoRegenTimeout = setTimeout(drawQRCode, 150);
+        }
+
+        // Rounded Rectangle Canvas Helper
+        function drawRoundedRect(ctx, x, y, width, height, radius, fill, stroke) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            if (fill) ctx.fill();
+            if (stroke) ctx.stroke();
+        }
+
+        // Custom styled finder eye helper
+        function drawStyledEye(ctx, x, y, size, style, outerColor, innerColor, fallbackStyle) {
+            ctx.save();
+            ctx.fillStyle = outerColor || fallbackStyle;
+            const outerSize = size;
+            const innerOffset = size * (2 / 7);
+            const innerSize = size * (3 / 7);
+
+            // Outer ring
+            if (style === 'square') {
+                ctx.fillRect(x, y, outerSize, outerSize);
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.fillRect(x + size/7, y + size/7, size * (5/7), size * (5/7));
+                ctx.globalCompositeOperation = 'source-over';
+            } else if (style === 'rounded') {
+                const r = outerSize * 0.25;
+                drawRoundedRect(ctx, x, y, outerSize, outerSize, r, true, false);
+                ctx.globalCompositeOperation = 'destination-out';
+                drawRoundedRect(ctx, x + size/7, y + size/7, size * (5/7), size * (5/7), r * 0.7, true, false);
+                ctx.globalCompositeOperation = 'source-over';
+            } else if (style === 'smooth') {
+                ctx.beginPath();
+                ctx.arc(x + outerSize/2, y + outerSize/2, outerSize/2, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(x + outerSize/2, y + outerSize/2, (size*(5/7))/2, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.globalCompositeOperation = 'source-over';
+            }
+
+            // Inner eye core
+            ctx.fillStyle = innerColor || fallbackStyle;
+            if (style === 'square') {
+                ctx.fillRect(x + innerOffset, y + innerOffset, innerSize, innerSize);
+            } else if (style === 'rounded') {
+                const ir = innerSize * 0.25;
+                drawRoundedRect(ctx, x + innerOffset, y + innerOffset, innerSize, innerSize, ir, true, false);
+            } else if (style === 'smooth') {
+                ctx.beginPath();
+                ctx.arc(x + outerSize/2, y + outerSize/2, innerSize/2, 0, 2*Math.PI);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // Render Premium Preset Icons
+        function drawPresetLogo(ctx, preset, lx, ly, size, callback) {
+            let svgContent = '';
+            // Tailored SVGs to suit specific preset aesthetics
+            if (preset === 'web') {
+                svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
+            } else if (preset === 'wifi') {
+                svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`;
+            } else if (preset === 'mail') {
+                svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`;
+            } else if (preset === 'phone') {
+                svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`;
+            } else if (preset === 'github') {
+                svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>`;
+            } else if (preset === 'bitcoin') {
+                svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.75 11.625c.69 0 1.25-.56 1.25-1.25s-.56-1.25-1.25-1.25h-2.5v2.5h2.5z"/><path d="M12.5 16.625c.69 0 1.25-.56 1.25-1.25s-.56-1.25-1.25-1.25h-3.25v2.5H12.5z"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M8 7.5h4.75a2.5 2.5 0 0 1 0 5H8m0 0h5.5a2.5 2.5 0 0 1 0 5H8m1-10V4m2 3.5V4m-2 16v-2.5m2 2.5v-2.5"/></svg>`;
+            }
+
+            if (!svgContent) {
+                callback();
+                return;
+            }
+
+            const svgBlob = new Blob([svgContent], {type: 'image/svg+xml;charset=utf-8'});
+            const url = URL.createObjectURL(svgBlob);
+            const img = new Image();
+            img.onload = function() {
+                ctx.drawImage(img, lx, ly, size, size);
+                URL.revokeObjectURL(url);
+                callback();
+            };
+            img.src = url;
+        }
+
+        // ================= MASTER GENERATION PROCESS =================
+        function drawQRCode() {
+            const text = getQRCodeText();
+            if (!text) {
+                drawEmptyCanvas();
+                return;
+            }
+
+            const canvas = document.getElementById('qr-canvas');
+            const ctx = canvas.getContext('2d');
+            const exportSize = parseInt(document.getElementById('export-size').value) || 1024;
+            
+            // Set canvas resolutions to scale cleanly
+            canvas.width = exportSize;
+            canvas.height = exportSize;
+
+            // Fetch style values
+            const dotStyle = document.getElementById('dot-style').value;
+            const eyeStyle = document.getElementById('eye-style').value;
+            const fgType = document.getElementById('fg-type').value;
+            const fgColor1 = document.getElementById('fg-color-1').value;
+            const fgColor2 = document.getElementById('fg-color-2').value;
+            const customEyesEnabled = document.getElementById('custom-eye-colors').checked;
+            const eyeColorOuter = customEyesEnabled ? document.getElementById('eye-outer-color').value : null;
+            const eyeColorInner = customEyesEnabled ? document.getElementById('eye-inner-color').value : null;
+            const bgType = document.getElementById('bg-type').value;
+            const bgColor = bgType === 'solid' ? document.getElementById('bg-color').value : '#ffffff00';
+            const ecLevel = document.getElementById('ec-level').value;
+
+            const logoEnabled = document.getElementById('logo-enabled').checked;
+            const logoPreset = document.getElementById('logo-preset').value;
+            const logoSizePct = parseFloat(document.getElementById('logo-size').value) / 100;
+            const logoFileLoaded = document.getElementById('logo-file').files[0];
+
+            try {
+                // Generate base QR Matrix using reliable node-qrcode client bundle
+                const qr = QRCode.create(text, { errorCorrectionLevel: ecLevel });
+                const modules = qr.modules;
+                const size = modules.size;
+                const padding = 4; // Quiet Zone modules
+                const totalModules = size + padding * 2;
+                const moduleSize = exportSize / totalModules;
+
+                // Clear and render custom background
+                ctx.clearRect(0, 0, exportSize, exportSize);
+                if (bgType === 'solid') {
+                    ctx.fillStyle = bgColor;
+                    ctx.fillRect(0, 0, exportSize, exportSize);
+                }
+
+                // Setup logo coordinate bounding masks to prevent dots drawing under logo
+                const centerModule = totalModules / 2;
+                const logoModulesHalf = (totalModules * logoSizePct) / 2;
+                const minLogoMod = centerModule - logoModulesHalf;
+                const maxLogoMod = centerModule + logoModulesHalf;
+
+                // Foreground gradient setup
+                let fgStyle;
+                if (fgType === 'solid') {
+                    fgStyle = fgColor1;
+                } else {
+                    const dir = document.getElementById('fg-grad-dir').value;
+                    if (dir === 'linear-horiz') {
+                        fgStyle = ctx.createLinearGradient(0, 0, exportSize, 0);
+                    } else if (dir === 'linear-vert') {
+                        fgStyle = ctx.createLinearGradient(0, 0, 0, exportSize);
+                    } else if (dir === 'radial') {
+                        fgStyle = ctx.createRadialGradient(exportSize/2, exportSize/2, 50, exportSize/2, exportSize/2, exportSize/1.4);
+                    } else { // default diagonal
+                        fgStyle = ctx.createLinearGradient(0, 0, exportSize, exportSize);
+                    }
+                    fgStyle.addColorStop(0, fgColor1);
+                    fgStyle.addColorStop(1, fgColor2);
+                }
+
+                // Draw QR Pattern dots
+                for (let r = 0; r < size; r++) {
+                    for (let c = 0; c < size; c++) {
+                        const isDark = modules.get ? modules.get(r, c) : modules.data[r * size + c];
+                        if (!isDark) continue;
+
+                        // Exclude Large Finder Eyes (Drawn styled separately below)
+                        if ((r < 7 && c < 7) || (r < 7 && c >= size - 7) || (r >= size - 7 && c < 7)) {
+                            continue;
+                        }
+
+                        // Apply logo exclusion zone cut if active
+                        const modX = c + padding;
+                        const modY = r + padding;
+                        if (logoEnabled) {
+                            if (modX >= minLogoMod && modX <= maxLogoMod && modY >= minLogoMod && modY <= maxLogoMod) {
+                                continue;
+                            }
+                        }
+
+                        // Position coordinates
+                        const x = modX * moduleSize;
+                        const y = modY * moduleSize;
+                        const w = moduleSize;
+                        const h = moduleSize;
+
+                        ctx.fillStyle = fgStyle;
+
+                        // Handle Dot Style Pattern shapes
+                        if (dotStyle === 'square') {
+                            ctx.fillRect(x, y, w + 0.3, h + 0.3); // Slight overlap resolves thin grid artifacting on canvas
+                        } else if (dotStyle === 'rounded') {
+                            drawRoundedRect(ctx, x + 0.5, y + 0.5, w - 0.5, h - 0.5, w * 0.4, true, false);
+                        } else if (dotStyle === 'dots') {
+                            ctx.beginPath();
+                            ctx.arc(x + w / 2, y + h / 2, (w / 2) * 0.85, 0, 2 * Math.PI);
+                            ctx.fill();
+                        } else if (dotStyle === 'classy') {
+                            ctx.beginPath();
+                            ctx.moveTo(x + w / 2, y);
+                            ctx.lineTo(x + w, y + h / 2);
+                            ctx.lineTo(x + w / 2, y + h);
+                            ctx.lineTo(x, y + h / 2);
+                            ctx.closePath();
+                            ctx.fill();
+                        }
+                    }
+                }
+
+                // Draw structured Corner Finder Eyes
+                const eyeCoordinates = [
+                    { r: padding, c: padding },
+                    { r: padding, c: padding + size - 7 },
+                    { r: padding + size - 7, c: padding }
+                ];
+
+                eyeCoordinates.forEach(coord => {
+                    const ex = coord.c * moduleSize;
+                    const ey = coord.r * moduleSize;
+                    const ew = moduleSize * 7;
+
+                    drawStyledEye(ctx, ex, ey, ew, eyeStyle, eyeColorOuter, eyeColorInner, fgStyle);
+                });
+
+                // Render Overlaid Brand Logo
+                if (logoEnabled) {
+                    const logoSize = exportSize * logoSizePct;
+                    const lx = (exportSize - logoSize) / 2;
+                    const ly = (exportSize - logoSize) / 2;
+
+                    // Draw protective badge background behind logo to keep modules isolated
+                    ctx.fillStyle = bgType === 'transparent' ? '#ffffff' : bgColor;
+                    drawRoundedRect(ctx, lx - moduleSize * 0.4, ly - moduleSize * 0.4, logoSize + moduleSize * 0.8, logoSize + moduleSize * 0.8, moduleSize * 0.6, true, false);
+
+                    if (logoPreset !== 'none') {
+                        drawPresetLogo(ctx, logoPreset, lx, ly, logoSize, verifyQRCode);
+                    } else if (logoFileLoaded && customLogoBase64) {
+                        const img = new Image();
+                        img.onload = function() {
+                            ctx.drawImage(img, lx, ly, logoSize, logoSize);
+                            verifyQRCode();
+                        };
+                        img.src = customLogoBase64;
+                    } else {
+                        verifyQRCode();
+                    }
+                } else {
+                    verifyQRCode();
+                }
+
+            } catch (err) {
+                console.error("Critical rendering pipeline error: ", err);
+                drawEmptyCanvas();
+            }
+        }
+
+        // Placeholder canvas drawer
+        function drawEmptyCanvas() {
+            const canvas = document.getElementById('qr-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 400;
+            canvas.height = 400;
+            ctx.fillStyle = '#f1f5f9';
+            ctx.fillRect(0, 0, 400, 400);
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('QR Code Studio', 200, 200);
+        }
+
+        // ================= IN-BROWSER SCANNABILITY VALIDATION =================
+        function verifyQRCode() {
+            const canvas = document.getElementById('qr-canvas');
+            const ctx = canvas.getContext('2d');
+            const targetText = getQRCodeText();
+            const badge = document.getElementById('verification-badge');
+
+            // Access complete image binary stream
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            // Read and decode with jsQR
+            const code = jsQR(imgData.data, imgData.width, imgData.height);
+
+            if (code && code.data === targetText) {
+                badge.className = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20";
+                badge.innerHTML = `
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    ✓ High Speed Scannable
+                `;
+            } else {
+                badge.className = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-500 border border-rose-500/20";
+                badge.innerHTML = `
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    ⚠️ Hard to scan! Adjust shapes/colors
+                `;
+            }
+        }
+
+        // Action: Download Export
+        function downloadQR(format) {
+            const canvas = document.getElementById('qr-canvas');
+            const text = getQRCodeText() || 'qr_code';
+            const sanitizedFilename = text.substring(0, 24).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+            let url;
+            if (format === 'jpeg') {
+                url = canvas.toDataURL('image/jpeg', 0.95);
+            } else {
+                url = canvas.toDataURL('image/png');
+            }
+
+            const a = document.createElement('a');
+            a.download = `qr_studio_${sanitizedFilename}.${format}`;
+            a.href = url;
+            a.click();
+
+            // Log session history
+            logSessionItem(text);
+            showNotification('Export Successful!', 'Downloaded QR Code template as ' + format.toUpperCase(), 'success');
+        }
+
+        // Custom Floating Notification Banner System (Averages out window.alert issues)
+        function showNotification(title, message, type = 'success') {
+            const wrapper = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "flex gap-3 bg-white dark:bg-slate-950 p-4 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 pointer-events-auto transform transition duration-300 translate-x-20 opacity-0 max-w-sm";
+            
+            let iconColor = 'text-brand-500 bg-brand-500/10';
+            if (type === 'error') iconColor = 'text-rose-500 bg-rose-500/10';
+            if (type === 'warning') iconColor = 'text-amber-500 bg-amber-500/10';
+
+            toast.innerHTML = `
+                <div class="p-2 h-fit rounded-xl ${iconColor}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                    <h5 class="font-bold text-xs text-slate-800 dark:text-slate-100">${title}</h5>
+                    <p class="text-[10px] text-slate-400 mt-0.5">${message}</p>
+                </div>
+            `;
+            wrapper.appendChild(toast);
+            
+            // Trigger animation frame in, then sweep out
+            setTimeout(() => {
+                toast.classList.remove('translate-x-20', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-20', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Session Log Tracking
+        function logSessionItem(text) {
+            const log = {
+                text: text,
+                timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                type: currentTabId.toUpperCase()
+            };
+            sessionHistory.unshift(log);
+            renderSessionHistory();
+        }
+
+        function renderSessionHistory() {
+            const container = document.getElementById('history-timeline');
+            container.innerHTML = '';
+
+            if (sessionHistory.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Your creations in this session will appear here.</p>`;
+                return;
+            }
+
+            sessionHistory.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = "p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 text-left";
+                row.innerHTML = `
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-800 rounded font-extrabold text-[9px] text-slate-500 tracking-wider">${item.type}</span>
+                            <span class="text-[9px] text-slate-400 font-semibold">${item.timestamp}</span>
+                        </div>
+                        <p class="text-[10px] font-mono text-slate-500 truncate mt-1 break-all">${item.text}</p>
+                    </div>
+                    <button onclick="rehydrateFromHistory(${index})" class="text-[10px] font-bold bg-brand-500 hover:bg-brand-600 text-white px-2 py-1 rounded-lg">Load</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function rehydrateFromHistory(index) {
+            const item = sessionHistory[index];
+            if (item) {
+                // Find and open tab matching history item type
+                const tabKey = item.type.toLowerCase();
+                if (TABS[tabKey]) {
+                    switchTab(tabKey);
+                    // Standard field re-inject (for simple first fields)
+                    const firstFieldId = TABS[tabKey].fields[0].id;
+                    const el = document.getElementById(firstFieldId);
+                    if (el) {
+                        el.value = item.text;
+                        triggerRegenerate();
+                    }
+                    showNotification('Template Re-loaded', 'Successfully reloaded template into customization canvas.', 'info');
+                }
+            }
+        }
+
+        function clearSessionHistory() {
+            sessionHistory = [];
+            renderSessionHistory();
+            showNotification('History Cleared', 'Session log was cleared successfully.', 'info');
+        }
+
+
+        // ==========================================
+        //         QR CODE SCANNING ENGINE
+        // ==========================================
+        let scanVideoStream = null;
+        let scanFrameRequestId = null;
+
+        function toggleScannerCamera(activate) {
+            const video = document.getElementById('scanner-video');
+            const placeholder = document.getElementById('scanner-placeholder');
+            const videoContainer = document.getElementById('video-container');
+            const startBtn = document.getElementById('camera-start-btn');
+            const stopBtn = document.getElementById('camera-stop-btn');
+
+            if (activate) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                    .then(stream => {
+                        scanVideoStream = stream;
+                        video.srcObject = stream;
+                        video.setAttribute('playsinline', true);
+                        video.play();
+
+                        videoContainer.classList.remove('hidden');
+                        placeholder.classList.add('hidden');
+                        startBtn.classList.add('hidden');
+                        stopBtn.classList.remove('hidden');
+
+                        // Start animation tick detection loop
+                        scanFrameRequestId = requestAnimationFrame(tickScannerStream);
+                        showNotification('Camera Activated', 'Direct device camera feed loaded successfully.', 'info');
+                    })
+                    .catch(err => {
+                        console.error("Camera hook failed: ", err);
+                        showNotification('Camera Error', 'Could not open video devices. Check browser permission blocks.', 'error');
+                    });
+            } else {
+                // Stop camera stream safely
+                if (scanVideoStream) {
+                    scanVideoStream.getTracks().forEach(track => track.stop());
+                    scanVideoStream = null;
+                }
+                if (scanFrameRequestId) {
+                    cancelAnimationFrame(scanFrameRequestId);
+                    scanFrameRequestId = null;
+                }
+                videoContainer.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                startBtn.classList.remove('hidden');
+                stopBtn.classList.add('hidden');
+            }
+        }
+
+        // Core Tick execution loop detecting feed frames
+        function tickScannerStream() {
+            const video = document.getElementById('scanner-video');
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                const capCanvas = document.createElement('canvas');
+                const capCtx = capCanvas.getContext('2d');
+                capCanvas.width = video.videoWidth;
+                capCanvas.height = video.videoHeight;
+                capCtx.drawImage(video, 0, 0, capCanvas.width, capCanvas.height);
+
+                const dataStream = capCtx.getImageData(0, 0, capCanvas.width, capCanvas.height);
+                const code = jsQR(dataStream.data, dataStream.width, dataStream.height);
+
+                if (code) {
+                    handleDecodedQR(code.data);
+                    toggleScannerCamera(false); // Shut down camera stream upon successful sweep
+                    return;
+                }
+            }
+            scanFrameRequestId = requestAnimationFrame(tickScannerStream);
+        }
+
+        // File-Upload QR Code scanner method
+        function handleScanImageUpload() {
+            const file = document.getElementById('scan-file').files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    const dataStream = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(dataStream.data, dataStream.width, dataStream.height);
+
+                    if (code) {
+                        handleDecodedQR(code.data);
+                        showNotification('QR Decoded!', 'Image parsed successfully.', 'success');
+                    } else {
+                        showNotification('Reading Failed', 'No valid QR code pattern found inside this file.', 'error');
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Format and structure decoded data outputs
+        function handleDecodedQR(rawText) {
+            const emptyState = document.getElementById('scan-empty-state');
+            const card = document.getElementById('scan-result-card');
+            const actions = document.getElementById('scan-actions-panel');
+            
+            const badge = document.getElementById('scan-type-badge');
+            const details = document.getElementById('scan-detailed-fields');
+            const rawView = document.getElementById('scan-raw-text');
+            const actionLink = document.getElementById('scan-action-link');
+            const stamp = document.getElementById('scan-timestamp');
+
+            emptyState.classList.add('hidden');
+            card.classList.remove('hidden');
+            actions.classList.remove('hidden');
+
+            stamp.innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            rawView.innerText = rawText;
+
+            // Analyze formatted protocol types
+            let parsedType = 'PLAIN TEXT';
+            let formattedFields = [];
+            let directUrl = '';
+
+            if (/^https?:\/\//i.test(rawText)) {
+                parsedType = 'URL WEB LINK';
+                directUrl = rawText;
+                formattedFields.push({label: 'Target Destination', val: `<a class="text-indigo-600 dark:text-indigo-400 underline font-semibold" href="${rawText}" target="_blank">${rawText}</a>`});
+            } else if (/^WIFI:/i.test(rawText)) {
+                parsedType = 'WI-FI CONFTG';
+                const ssid = rawText.match(/S:([^;]+)/)?.[1] || 'Unknown Network';
+                const pass = rawText.match(/P:([^;]+)/)?.[1] || 'None (Open)';
+                const type = rawText.match(/T:([^;]+)/)?.[1] || 'None';
+                formattedFields.push({label: 'Network SSID Name', val: `<strong>${ssid}</strong>`});
+                formattedFields.push({label: 'Security Encryption', val: type});
+                formattedFields.push({label: 'Network Key Password', val: `<span class="font-mono bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs select-all">${pass}</span>`});
+            } else if (/^mailto:/i.test(rawText)) {
+                parsedType = 'EMAIL INVITATION';
+                const to = rawText.split('?')[0].replace('mailto:', '');
+                const sub = decodeURIComponent(rawText.match(/subject=([^&]+)/)?.[1] || '');
+                const body = decodeURIComponent(rawText.match(/body=([^&]+)/)?.[1] || '');
+                directUrl = `mailto:${to}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
+                formattedFields.push({label: 'Recipient Mail', val: to});
+                formattedFields.push({label: 'Subject Line', val: sub});
+                formattedFields.push({label: 'Message Body Outline', val: body});
+            } else if (/^tel:/i.test(rawText)) {
+                parsedType = 'TELEPHONE CALL';
+                const phone = rawText.replace('tel:', '');
+                directUrl = `tel:${phone}`;
+                formattedFields.push({label: 'Call Direct', val: `<a class="text-emerald-600 dark:text-emerald-400 font-bold" href="tel:${phone}">${phone}</a>`});
+            } else {
+                formattedFields.push({label: 'Text Information', val: rawText});
+            }
+
+            // Set badge values
+            badge.innerText = parsedType;
+
+            // Generate structured detail list html
+            details.innerHTML = '';
+            formattedFields.forEach(f => {
+                const block = document.createElement('div');
+                block.className = "py-2";
+                block.innerHTML = `
+                    <span class="block text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">${f.label}</span>
+                    <p class="text-xs text-slate-700 dark:text-slate-200">${f.val}</p>
+                `;
+                details.appendChild(block);
+            });
+
+            // Action Button bindings
+            if (directUrl) {
+                actionLink.href = directUrl;
+                actionLink.classList.remove('opacity-50', 'pointer-events-none');
+            } else {
+                actionLink.href = '#';
+                actionLink.classList.add('opacity-50', 'pointer-events-none');
+            }
+        }
+
+        // Action: Copy text values
+        function copyScannedToClipboard() {
+            const rawText = document.getElementById('scan-raw-text').innerText;
+            // Native environment clipboard fallback standard
+            const el = document.createElement('textarea');
+            el.value = rawText;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showNotification('Copied to Clipboard!', 'Saved raw value data directly to clipboard.', 'success');
+        }
+    </script>
+</body>
+</html>

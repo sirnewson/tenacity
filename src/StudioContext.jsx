@@ -6,13 +6,89 @@ import {
   useRef,
   useState,
 } from 'react'
-import { formats, cardThemes } from './constants'
+import {
+  brand,
+  defaultTagStyle,
+  describeAspect,
+  formats,
+  selectCards,
+  tagStyles,
+} from './brand'
+import { TAG, detailLineCount, priceScale, titleScale } from './tagLayout'
+import { QR_CORNERS, QR_SIZES, makeQr } from './qr'
+import JSZip from 'jszip'
+import { pickSaveStrategy } from './platform'
 
 const StudioContext = createContext(null)
 export const useStudio = () => useContext(StudioContext)
 
+/** Break text to fit `maxWidth` using the context's current font. Canvas has no
+ *  word wrap, so the export has to reproduce what CSS does in the live card —
+ *  including character-level breaks for unbroken strings. */
+function wrapText(ctx, text, maxWidth, maxLines = Infinity) {
+  const lines = []
+  ;(text || '').split('\n').forEach((paragraph) => {
+    let line = ''
+    const tokens = paragraph.match(/\S+\s*/g) || ['']
+    tokens.forEach((token) => {
+      const candidate = line + token
+      if (line && ctx.measureText(candidate).width > maxWidth) {
+        lines.push(line.trimEnd())
+        line = token
+      } else {
+        line = candidate
+      }
+      while (ctx.measureText(line).width > maxWidth) {
+        let cut = line.length - 1
+        while (cut > 1 && ctx.measureText(line.slice(0, cut)).width > maxWidth) cut -= 1
+        lines.push(line.slice(0, cut))
+        line = line.slice(cut)
+      }
+    })
+    if (line || !paragraph) lines.push(line.trimEnd())
+  })
+  return lines.slice(0, maxLines)
+}
+
+/** Load an image and resolve once it is actually decodable. Resolves to null
+ *  instead of rejecting so a missing asset can never strand the save button. */
+function loadImage(src) {
+  return new Promise((resolve) => {
+    if (!src) return resolve(null)
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve(img)
+    img.onerror = () => resolve(null)
+    img.src = src
+  })
+}
+
 export function StudioProvider({ children }) {
-  const [step, setStep] = useState('select')
+  // Suite builds open on the app hub; otherwise the walkthrough or the picker.
+  const [step, setStep] = useState(
+    brand.suite?.enabled ? 'hub' : brand.demoMode ? 'home' : 'select'
+  )
+  const [activeApp, setActiveApp] = useState(null)
+  // Settings mutates the shared brand object; this forces the tree to re-read it.
+  const [brandVersion, setBrandVersion] = useState(0)
+  // Overlays the visitor uploaded during this session (never persisted).
+  const [customTemplates, setCustomTemplates] = useState([])
+  const [overlayModalOpen, setOverlayModalOpen] = useState(false)
+  // Scannable badge burned into the poster — WhatsApp order, till, or a link.
+  const [qr, setQr] = useState({
+    on: false,
+    value: '',
+    label: brand.qr?.caption || 'SCAN ME',
+    corner: 'bottom-right',
+    size: 'M',
+  })
+  const [qrModalOpen, setQrModalOpen] = useState(false)
+  // Batch: shoot a run of products, review them together, export in one file.
+  const [batchMode, setBatchMode] = useState(false)
+  const [batch, setBatch] = useState([])
+  const [batchBusy, setBatchBusy] = useState(false)
+
+  const qrImgRef = useRef(null)
   const [format, setFormat] = useState(null)
   const [mode, setMode] = useState('camera') // 'camera' | 'upload'
   const [autoEnhance, setAutoEnhance] = useState(true)
@@ -20,7 +96,7 @@ export function StudioProvider({ children }) {
   const [specsDetails, setSpecsDetails] = useState('')
   const [specsPrice, setSpecsPrice] = useState('')
   const [hasSpecs, setHasSpecs] = useState(false)
-  const [cardTheme, setCardTheme] = useState('dark')
+  const [tagStyle, setTagStyle] = useState(defaultTagStyle)
   const [cameraAvailable, setCameraAvailable] = useState(true)
   const [specsModalOpen, setSpecsModalOpen] = useState(false)
   const [captureSize, setCaptureSize] = useState({ w: 0, h: 0 })
@@ -29,11 +105,14 @@ export function StudioProvider({ children }) {
   const [resultTitle, setResultTitle] = useState('PROCESSING...')
   const [alert, setAlert] = useState({ msg: '', isError: true, visible: false })
 
+  const tagUrl = (tagStyles[tagStyle] || Object.values(tagStyles)[0]).url
+
   // ---- Mutable refs ----
   const streamRef = useRef(null)
   const facingModeRef = useRef('environment')
   const capturedRef = useRef(null)
   const finalRef = useRef(null)
+  const mergeJobRef = useRef(null)
   const overlayImgObjRef = useRef(null)
   const tagOverlayImgRef = useRef(null)
   const transformRef = useRef({
@@ -48,8 +127,6 @@ export function StudioProvider({ children }) {
   })
   const cardStateRef = useRef({ scale: 1 })
   const specMetricsRef = useRef(null)
-  const matrixRafRef = useRef(null)
-  const matrixTimerRef = useRef(null)
   const revealTimersRef = useRef([])
   const alertTimerRef = useRef(null)
 
@@ -68,9 +145,7 @@ export function StudioProvider({ children }) {
     displayPrice: useRef(null),
     revealArea: useRef(null),
     baseImage: useRef(null),
-    matrixCanvas: useRef(null),
     overlayImg: useRef(null),
-    fillScanline: useRef(null),
     statusText: useRef(null),
     particles: useRef(null),
     fileInput: useRef(null),
@@ -84,15 +159,6 @@ export function StudioProvider({ children }) {
       setAlert((a) => ({ ...a, visible: false }))
     }, 3000)
   }, [])
-
-  const clearMatrix = useCallback(() => {
-    cancelAnimationFrame(matrixRafRef.current)
-    clearTimeout(matrixTimerRef.current)
-    if (refs.matrixCanvas.current) {
-      const ctx = refs.matrixCanvas.current.getContext('2d')
-      if (ctx) ctx.clearRect(0, 0, refs.matrixCanvas.current.width, refs.matrixCanvas.current.height)
-    }
-  }, [refs.matrixCanvas])
 
   // ---------- Camera ----------
   const stopCamera = useCallback(() => {
@@ -196,12 +262,110 @@ export function StudioProvider({ children }) {
     [refs.overlayImg, refs.ghostOverlay]
   )
 
+  const qrDataUrl = qr.on ? makeQr(qr.value) : null
+
+  // Keep a decoded copy for the canvas export.
+  useEffect(() => {
+    if (!qrDataUrl) {
+      qrImgRef.current = null
+      return
+    }
+    const img = new Image()
+    img.onload = () => {
+      qrImgRef.current = img
+    }
+    img.src = qrDataUrl
+  }, [qrDataUrl])
+
+  // Keep the canvas copy of the price plate in sync with the chosen style.
   useEffect(() => {
     const image = new Image()
     image.onload = () => {
       tagOverlayImgRef.current = image
     }
-    image.src = '/product-tag-overlay.png'
+    image.src = tagUrl
+  }, [tagUrl])
+
+  // ---------- Templates (built-in + uploaded) ----------
+  // Uploaded overlays are first-class templates: they export at their own
+  // pixel size, so any aspect a designer hands over just works.
+  const allFormats = { ...formats, ...Object.fromEntries(customTemplates.map((t) => [t.id, t])) }
+  const allCards = [...selectCards, ...customTemplates.map((t) => t.card)]
+
+  // Where the upload modal was opened from decides where a new overlay lands.
+  const overlayModalFromRef = useRef('select')
+  const openOverlayModal = useCallback(() => {
+    overlayModalFromRef.current = step
+    setOverlayModalOpen(true)
+  }, [step])
+  const closeOverlayModal = useCallback(() => setOverlayModalOpen(false), [])
+
+  /** Turn an uploaded image file into a session template. */
+  const addOverlay = useCallback(
+    (file) =>
+      new Promise((resolve) => {
+        if (!file) return resolve(null)
+        if (!file.type.startsWith('image/')) {
+          showMessage('That is not an image file.', true)
+          return resolve(null)
+        }
+        const reader = new FileReader()
+        reader.onerror = () => {
+          showMessage('Could not read that file.', true)
+          resolve(null)
+        }
+        reader.onload = (ev) => {
+          const dataUrl = ev.target.result
+          const img = new Image()
+          img.onerror = () => {
+            showMessage('Could not open that image.', true)
+            resolve(null)
+          }
+          img.onload = () => {
+            const { naturalWidth: w, naturalHeight: h } = img
+            if (w < 500 || h < 500) {
+              showMessage(`Too small (${w}×${h}). Use at least 1080px wide.`, true)
+              return resolve(null)
+            }
+            const name = file.name.replace(/\.[^.]+$/, '').slice(0, 22) || 'My overlay'
+            const id = `custom-${Date.now()}`
+            const template = {
+              id,
+              name,
+              overlayUrl: dataUrl,
+              width: w,
+              height: h,
+              aspectRatio: w / h,
+              custom: true,
+              card: {
+                id,
+                icon: 'fa-cloud-arrow-up',
+                iconColor: 'text-brand-300',
+                title: name,
+                sub: describeAspect(w, h),
+                bg: dataUrl,
+                delay: 'delay-100',
+                custom: true,
+              },
+            }
+            setCustomTemplates((list) => [...list, template])
+            setOverlayModalOpen(false)
+            if (file.type !== 'image/png') {
+              showMessage('Added — but a JPG has no transparency, so it will hide the photo.', true)
+            } else {
+              showMessage(`Added "${name}" (${w}×${h}). Tap it to start.`, false)
+            }
+            resolve(template)
+          }
+          img.src = dataUrl
+        }
+        reader.readAsDataURL(file)
+      }),
+    [showMessage]
+  )
+
+  const removeOverlay = useCallback((id) => {
+    setCustomTemplates((list) => list.filter((t) => t.id !== id))
   }, [])
 
   // ---------- Step switching ----------
@@ -213,9 +377,36 @@ export function StudioProvider({ children }) {
     [stopCamera]
   )
 
-  const selectFormat = useCallback(
+  const goHome = useCallback(() => {
+    stopCamera()
+    setStep(brand.suite?.enabled ? 'hub' : 'home')
+  }, [stopCamera])
+
+  // ---------- Bundled apps ----------
+  const reloadBrand = useCallback(() => setBrandVersion((v) => v + 1), [])
+
+  const openApp = useCallback(
     (id) => {
-      const fmt = formats[id]
+      stopCamera()
+      setActiveApp(id)
+      setStep('app')
+    },
+    [stopCamera]
+  )
+  const closeApp = useCallback(() => {
+    setActiveApp(null)
+    setStep('hub')
+  }, [])
+
+  // Accepts an id or a format object — a freshly uploaded overlay is passed
+  // directly, since it is not in `allFormats` until the next render.
+  const resolveFormat = (idOrFmt) =>
+    typeof idOrFmt === 'string' ? allFormats[idOrFmt] : idOrFmt
+
+  const selectFormat = useCallback(
+    (idOrFmt) => {
+      const fmt = resolveFormat(idOrFmt)
+      if (!fmt) return
       setFormat(fmt)
       preloadOverlay(fmt.overlayUrl)
       setStep('camera')
@@ -226,18 +417,32 @@ export function StudioProvider({ children }) {
       }, 80)
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [preloadOverlay, setupCaptureArea, initCamera]
+    [allFormats, preloadOverlay, setupCaptureArea, initCamera]
   )
 
   const changeFormat = useCallback(
-    (id) => {
-      const fmt = formats[id]
+    (idOrFmt) => {
+      const fmt = resolveFormat(idOrFmt)
       if (!fmt || fmt.id === format?.id) return
       setFormat(fmt)
       preloadOverlay(fmt.overlayUrl)
       setTimeout(() => setupCaptureArea(fmt), 0)
     },
-    [format?.id, preloadOverlay, setupCaptureArea]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allFormats, format?.id, preloadOverlay, setupCaptureArea]
+  )
+
+  /** Upload an overlay and put it to work: swap it in if we are already in the
+   *  editor, otherwise open the studio with it selected. */
+  const addOverlayAndUse = useCallback(
+    async (file) => {
+      const template = await addOverlay(file)
+      if (!template) return null
+      if (overlayModalFromRef.current === 'camera') changeFormat(template)
+      else selectFormat(template)
+      return template
+    },
+    [addOverlay, changeFormat, selectFormat]
   )
 
   // ---------- Enhance toggle ----------
@@ -346,7 +551,7 @@ export function StudioProvider({ children }) {
     // Use raw element position if it hasn't been set by snapping yet
     d.elemX = parseFloat(box.style.left) || box.offsetLeft
     d.elemY = parseFloat(box.style.top) || box.offsetTop
-    
+
     const guides = document.getElementById('alignment-guides')
     if (guides) guides.style.opacity = '1'
 
@@ -364,10 +569,10 @@ export function StudioProvider({ children }) {
       const dx = e.clientX - d.startX
       const dy = e.clientY - d.startY
       d.distance += Math.abs(dx) + Math.abs(dy)
-      
+
       let rawX = d.elemX + dx
       let rawY = d.elemY + dy
-      
+
       const boundsW = area.clientWidth
       const boundsH = area.clientHeight
       const scale = cardStateRef.current.scale || 1
@@ -376,27 +581,27 @@ export function StudioProvider({ children }) {
 
       let snapX = rawX
       let snapY = rawY
-      
-      const tagCenterX = rawX + (tagW / 2)
-      const tagCenterY = rawY + (tagH / 2)
+
+      const tagCenterX = rawX + tagW / 2
+      const tagCenterY = rawY + tagH / 2
       const screenCenterX = boundsW / 2
       const screenCenterY = boundsH / 2
       const snapThreshold = 16
-      
-      if (Math.abs(tagCenterX - screenCenterX) < snapThreshold) snapX = screenCenterX - (tagW / 2)
-      if (Math.abs(tagCenterY - screenCenterY) < snapThreshold) snapY = screenCenterY - (tagH / 2)
+
+      if (Math.abs(tagCenterX - screenCenterX) < snapThreshold) snapX = screenCenterX - tagW / 2
+      if (Math.abs(tagCenterY - screenCenterY) < snapThreshold) snapY = screenCenterY - tagH / 2
 
       snapX = Math.max(-50, Math.min(snapX, boundsW - 100))
       snapY = Math.max(0, Math.min(snapY, boundsH - 50))
-      
+
       box.style.left = `${snapX}px`
       box.style.top = `${snapY}px`
-      
+
       d.startX = e.clientX
       d.startY = e.clientY
       d.elemX = rawX
       d.elemY = rawY
-      
+
       e.stopPropagation()
     },
     [refs.draggableBox, refs.captureArea]
@@ -405,7 +610,7 @@ export function StudioProvider({ children }) {
   const cardPointerUp = useCallback(() => {
     const d = dragCardRef.current
     d.dragging = false
-    
+
     const guides = document.getElementById('alignment-guides')
     if (guides) guides.style.opacity = '0'
 
@@ -424,8 +629,7 @@ export function StudioProvider({ children }) {
       r.active = true
       r.originX = rect.left
       r.originY = rect.top
-      r.startDist =
-        Math.hypot(e.clientX - rect.left, e.clientY - rect.top) || 1
+      r.startDist = Math.hypot(e.clientX - rect.left, e.clientY - rect.top) || 1
       r.startScale = cardStateRef.current.scale || 1
       e.currentTarget.setPointerCapture(e.pointerId)
       e.stopPropagation()
@@ -508,7 +712,15 @@ export function StudioProvider({ children }) {
       }, 30)
       showMessage('Tag added! Drag it to position, or tap it to edit.', false)
     },
-    [hasSpecs, refs.displayModel, refs.displayDetails, refs.displayPrice, refs.draggableBox, centerCard, showMessage]
+    [
+      hasSpecs,
+      refs.displayModel,
+      refs.displayDetails,
+      refs.displayPrice,
+      refs.draggableBox,
+      centerCard,
+      showMessage,
+    ]
   )
 
   const clearSpecs = useCallback(() => {
@@ -574,7 +786,7 @@ export function StudioProvider({ children }) {
     ctx.drawImage(video, offsetX, offsetY, drawW, drawH)
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     capturedRef.current = canvas.toDataURL('image/jpeg', 0.9)
-    startMagicReveal()
+    finishCapture()
   }
 
   function captureFromUpload() {
@@ -597,7 +809,42 @@ export function StudioProvider({ children }) {
     const finalY = (baseOffsetY + t.y + scaledOffsetY) * renderScale
     ctx.drawImage(img, finalX, finalY, drawW, drawH)
     capturedRef.current = canvas.toDataURL('image/jpeg', 0.9)
-    startMagicReveal()
+    finishCapture()
+  }
+
+  /** Batch capture: render silently, add to the tray, stay on the viewfinder
+   *  with the tag exactly where it is — the next product is usually the same
+   *  shot with a different name and price. */
+  async function captureForBatch() {
+    snapshotSpecMetrics()
+    setBatchBusy(true)
+    try {
+      const url = await mergeFinalPoster()
+      if (!url) {
+        showMessage('Could not render that one — try again.', true)
+        return
+      }
+      const item = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        url,
+        product: specsModel,
+        details: specsDetails,
+        price: specsPrice,
+        template: format?.name || '',
+      }
+      setBatch((b) => {
+        showMessage(`Added — ${b.length + 1} in the batch.`, false)
+        return [...b, item]
+      })
+    } finally {
+      setBatchBusy(false)
+    }
+  }
+
+  // Where a capture goes once the photo is in capturedRef.
+  function finishCapture() {
+    if (batchMode) captureForBatch()
+    else startMagicReveal()
   }
 
   function handleMainAction() {
@@ -606,12 +853,11 @@ export function StudioProvider({ children }) {
   }
 
   const animateStatusText = useCallback(
-    (text, isFinal = false) => {
+    (text) => {
       const el = refs.statusText.current
       if (!el) return
       el.innerText = text
       el.classList.remove('active')
-      el.style.color = isFinal ? '#4ade80' : '#ffffff'
       el.style.opacity = '1'
       setTimeout(() => el.classList.add('active'), 40)
     },
@@ -619,24 +865,39 @@ export function StudioProvider({ children }) {
   )
 
   // ---------- Merge final poster ----------
+  // Returns a promise so Save/Share can await an in-flight render instead of
+  // silently doing nothing. Every exit path settles `finalRef`.
   function mergeFinalPoster(enhance = autoEnhance) {
-    const canvas = document.createElement('canvas')
-    canvas.width = format.width
-    canvas.height = format.height
-    const ctx = canvas.getContext('2d')
-    const baseImg = new Image()
-    baseImg.onload = () => {
+    const job = (async () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = format.width
+      canvas.height = format.height
+      const ctx = canvas.getContext('2d')
+
+      // Re-fetch anything that hasn't finished preloading yet, so a slow
+      // network can't leave us without an overlay or tag plate.
+      const [baseImg, overlayImg, tagOverlay] = await Promise.all([
+        loadImage(capturedRef.current),
+        overlayImgObjRef.current || loadImage(format.overlayUrl),
+        hasSpecs ? tagOverlayImgRef.current || loadImage(tagUrl) : null,
+      ])
+      if (!overlayImgObjRef.current && overlayImg) overlayImgObjRef.current = overlayImg
+      if (hasSpecs && !tagOverlayImgRef.current && tagOverlay) tagOverlayImgRef.current = tagOverlay
+
+      if (!baseImg) {
+        finalRef.current = capturedRef.current
+        return finalRef.current
+      }
+
       ctx.filter = enhance
         ? 'contrast(1.2) saturate(1.2) brightness(1.05)'
         : 'none'
       ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height)
       ctx.filter = 'none'
-      if (!overlayImgObjRef.current) return
       try {
-        ctx.drawImage(overlayImgObjRef.current, 0, 0, canvas.width, canvas.height)
-        if (hasSpecs && specMetricsRef.current) {
+        if (overlayImg) ctx.drawImage(overlayImg, 0, 0, canvas.width, canvas.height)
+        if (hasSpecs && tagOverlay && specMetricsRef.current) {
           const sm = specMetricsRef.current
-          const th = cardThemes[cardTheme] || cardThemes.dark
           const baseUiScale = canvas.width / sm.containerW
           const finalScale = baseUiScale * cardStateRef.current.scale
           const x = sm.leftOffset * baseUiScale
@@ -650,81 +911,140 @@ export function StudioProvider({ children }) {
           const cardW = sm.cardBgWidth * finalScale
           const cardH = sm.cardBgHeight * finalScale
 
-          const tagOverlay = tagOverlayImgRef.current
-          if (!tagOverlay) return
-
           ctx.save()
           ctx.drawImage(tagOverlay, x, y, cardW, cardH)
 
           ctx.fillStyle = '#ffffff'
           ctx.textAlign = 'left'
           ctx.textBaseline = 'top'
-          
+
           ctx.shadowColor = 'rgba(0,0,0,0.4)'
           ctx.shadowBlur = 4 * finalScale
           ctx.shadowOffsetY = 2 * finalScale
 
-          ctx.font = `800 ${26 * finalScale}px Manrope, Inter, sans-serif`
-          ctx.fillText(model, x + cardW * 0.12, y + cardH * 0.19)
-          
+          // The live card wraps the title inside a 37%-wide column, so the
+          // export has to as well — otherwise a long name runs under the price.
+          const textLeft = x + cardW * TAG.textLeft
+          const textWidth = cardW * TAG.textWidth
+          const titleSize = cardW * TAG.titleSize * titleScale(model)
+          ctx.font = `800 ${titleSize}px Manrope, Inter, sans-serif`
+          const titleLineHeight = titleSize * 1.02
+          const titleLines = wrapText(ctx, model, textWidth, TAG.titleLines)
+          let titleY = y + cardH * TAG.titleTop
+          titleLines.forEach((line) => {
+            ctx.fillText(line, textLeft, titleY)
+            titleY += titleLineHeight
+          })
+
           ctx.shadowColor = 'transparent'
-          ctx.font = `600 ${11 * finalScale}px Manrope, Inter, sans-serif`
+          ctx.font = `600 ${cardW * TAG.detailSize}px Manrope, Inter, sans-serif`
           ctx.fillStyle = 'rgba(255,255,255,0.9)'
-          const maxDetailsWidth = cardW * 0.37
-          const lines = []
-          ;(details || '').split('\n').forEach((paragraph) => {
-            let currentLine = ''
-            const tokens = paragraph.match(/\S+\s*/g) || ['']
-            tokens.forEach((token) => {
-              const candidate = currentLine + token
-              if (currentLine && ctx.measureText(candidate).width > maxDetailsWidth) {
-                lines.push(currentLine.trimEnd())
-                currentLine = token
-              } else {
-                currentLine = candidate
-              }
-
-              // Paths and other long unbroken strings need character-level
-              // wrapping because canvas does not reproduce CSS word breaks.
-              while (ctx.measureText(currentLine).width > maxDetailsWidth) {
-                let splitAt = currentLine.length - 1
-                while (splitAt > 1 && ctx.measureText(currentLine.slice(0, splitAt)).width > maxDetailsWidth) {
-                  splitAt -= 1
-                }
-                lines.push(currentLine.slice(0, splitAt))
-                currentLine = currentLine.slice(splitAt)
-              }
-            })
-            if (currentLine || !paragraph) lines.push(currentLine.trimEnd())
-          })
-          let textY = y + cardH * 0.43
-          lines.slice(0, 4).forEach(line => {
-            ctx.fillText(line, x + cardW * 0.12, textY)
-            textY += 14 * finalScale
+          const lines = wrapText(ctx, details, textWidth, detailLineCount(model))
+          // Sit below the title, but never above its usual line.
+          let textY = Math.max(y + cardH * TAG.detailTop, titleY + 3 * finalScale)
+          lines.forEach((line) => {
+            ctx.fillText(line, textLeft, textY)
+            textY += cardW * TAG.detailLine
           })
 
+          // Price, right-aligned, with the currency set inline just before it —
+          // mirrors the live card so a long price never overlaps the label.
           ctx.fillStyle = '#ffffff'
           ctx.textAlign = 'right'
           ctx.textBaseline = 'middle'
           ctx.shadowColor = 'rgba(0,0,0,0.3)'
           ctx.shadowBlur = 4 * finalScale
-          
-          ctx.font = `400 ${42 * finalScale}px 'Bebas Neue', sans-serif`
-          ctx.fillText(price, x + cardW * 0.88, y + cardH * 0.60)
-          
-          ctx.font = `800 ${14 * finalScale}px Manrope, Inter, sans-serif`
-          ctx.textAlign = 'left'
-          ctx.fillText('KSH', x + cardW * 0.58, y + cardH * 0.30)
+
+          const priceRight = x + cardW * TAG.priceRight
+          const priceY = y + cardH * TAG.priceMid
+          const available = priceRight - (x + cardW * TAG.panelLeft)
+
+          // Start from the shared length rule, then shrink until the currency
+          // and the number genuinely fit inside the panel.
+          let fit = priceScale(price)
+          let priceW = 0
+          let currencyW = 0
+          for (let i = 0; i < 14; i += 1) {
+            ctx.font = `400 ${cardW * TAG.priceSize * fit}px 'Bebas Neue', sans-serif`
+            priceW = ctx.measureText(price).width
+            currencyW = 0
+            if (brand.currency) {
+              ctx.font = `800 ${cardW * TAG.currencySize * fit}px Manrope, Inter, sans-serif`
+              currencyW = ctx.measureText(brand.currency).width + cardW * TAG.currencyGap
+            }
+            if (priceW + currencyW <= available) break
+            fit *= 0.92
+          }
+
+          ctx.font = `400 ${cardW * TAG.priceSize * fit}px 'Bebas Neue', sans-serif`
+          ctx.fillText(price, priceRight, priceY)
+
+          if (brand.currency) {
+            ctx.font = `800 ${cardW * TAG.currencySize * fit}px Manrope, Inter, sans-serif`
+            ctx.fillText(brand.currency, priceRight - priceW - cardW * TAG.currencyGap, priceY + 2 * finalScale)
+          }
 
           ctx.restore()
         }
+        // ---- QR badge ----
+        if (qr.on && qrDataUrl) {
+          const qrImg = qrImgRef.current || (await loadImage(qrDataUrl))
+          if (qrImg) {
+            const spot = QR_CORNERS[qr.corner] || QR_CORNERS['bottom-right']
+            const short = Math.min(canvas.width, canvas.height)
+            const box = short * (QR_SIZES[qr.size] || QR_SIZES.M)
+            const pad = box * 0.09
+            const labelH = qr.label ? box * 0.2 : 0
+            const cardW = box + pad * 2
+            const cardH = box + pad * 2 + labelH
+            const cx = canvas.width * spot.x - cardW * spot.ax
+            const cy = canvas.height * spot.y - cardH * spot.ay
+
+            ctx.save()
+            ctx.shadowColor = 'rgba(0,0,0,0.35)'
+            ctx.shadowBlur = box * 0.12
+            ctx.shadowOffsetY = box * 0.03
+            ctx.fillStyle = '#ffffff'
+            const r = box * 0.1
+            ctx.beginPath()
+            ctx.roundRect(cx, cy, cardW, cardH, r)
+            ctx.fill()
+            ctx.shadowColor = 'transparent'
+            ctx.drawImage(qrImg, cx + pad, cy + pad, box, box)
+            if (qr.label) {
+              ctx.fillStyle = '#0a0a0a'
+              ctx.textAlign = 'center'
+              ctx.textBaseline = 'middle'
+              ctx.font = `800 ${labelH * 0.5}px Manrope, Inter, sans-serif`
+              ctx.fillText(qr.label, cx + cardW / 2, cy + pad + box + labelH * 0.55, box)
+            }
+            ctx.restore()
+          }
+        }
+
         finalRef.current = canvas.toDataURL('image/png')
       } catch {
+        // Canvas was tainted (or ran out of memory) — fall back to the photo.
         finalRef.current = capturedRef.current
-        showMessage('Security block: downloaded base photo instead.', true)
+        showMessage('Could not merge the template — saved the photo instead.', true)
+      }
+      return finalRef.current
+    })()
+
+    mergeJobRef.current = job
+    return job
+  }
+
+  /** The poster to hand to Save/Share, waiting on any in-flight render. */
+  async function getPoster() {
+    if (mergeJobRef.current) {
+      try {
+        await mergeJobRef.current
+      } catch {
+        /* falls through to whatever finalRef holds */
       }
     }
-    baseImg.src = capturedRef.current
+    return finalRef.current
   }
 
   // Toggle enhancement on the already-rendered poster and re-composite.
@@ -735,20 +1055,32 @@ export function StudioProvider({ children }) {
   }
 
   // ---------- Magic reveal sequence ----------
-  function startMagicReveal() {
-    // Snapshot spec metrics from the live card before leaving camera view
-    if (hasSpecs) {
-      const box = refs.draggableBox.current
-      const area = refs.captureArea.current
-      const cardBg = refs.cardBg.current
-      specMetricsRef.current = {
-        containerW: area.clientWidth,
-        leftOffset: box.offsetLeft,
-        topOffset: box.offsetTop,
-        cardBgWidth: cardBg.offsetWidth,
-        cardBgHeight: cardBg.offsetHeight,
-      }
+  // Measure the live tag before we leave the camera view. Both the reveal and
+  // a batch capture need it, and it has to be read while the card is on screen.
+  function snapshotSpecMetrics() {
+    if (!hasSpecs) {
+      specMetricsRef.current = null
+      return
     }
+    const box = refs.draggableBox.current
+    const area = refs.captureArea.current
+    const cardBg = refs.cardBg.current
+    if (!box || !area || !cardBg) return
+    specMetricsRef.current = {
+      containerW: area.clientWidth,
+      leftOffset: box.offsetLeft,
+      topOffset: box.offsetTop,
+      cardBgWidth: cardBg.offsetWidth,
+      cardBgHeight: cardBg.offsetHeight,
+    }
+  }
+
+  function startMagicReveal() {
+    snapshotSpecMetrics()
+
+    // Drop the previous poster so Save can never hand back a stale render.
+    finalRef.current = null
+    mergeJobRef.current = null
 
     // Set the base image up-front so it's present from the first frame
     // (no pop-in / rescale as the reveal step appears).
@@ -860,7 +1192,7 @@ export function StudioProvider({ children }) {
       setupCaptureArea()
       if (mode === 'camera') initCamera()
     }, 80)
-  }, [refs, mode, initCamera, setupCaptureArea, clearMatrix])
+  }, [refs, mode, initCamera, setupCaptureArea])
 
   // "Take again" — return to the studio for a fresh live capture.
   const retake = useCallback(() => {
@@ -868,62 +1200,197 @@ export function StudioProvider({ children }) {
     setTimeout(() => resetToCamera(), 120)
   }, [goBackToEdit, resetToCamera])
 
-  const downloadPoster = useCallback(() => {
-    if (!finalRef.current) return
-    const link = document.createElement('a')
-    link.href = finalRef.current
-    link.download = `Tenacity_Poster_${Date.now()}.png`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }, [])
+  const posterFileName = () =>
+    `${brand.slug.replace(/[^a-z0-9]+/gi, '_')}_poster_${Date.now()}.png`
+
+  const posterBlob = async () => {
+    const url = await getPoster()
+    if (!url) return null
+    const res = await fetch(url)
+    return res.blob()
+  }
+
+  const downloadPoster = useCallback(async () => {
+    try {
+      const blob = await posterBlob()
+      if (!blob) {
+        showMessage('Still rendering - give it a second and tap Save again.', true)
+        return
+      }
+      const name = posterFileName()
+      const file = new File([blob], name, { type: blob.type || 'image/png' })
+
+      // <a download> is a no-op on iOS Safari and is blocked outright in the
+      // social in-app browsers this tool is usually opened from, so those get
+      // the share sheet ("Save Image") instead. Nothing detects the failure
+      // after the fact - the click just silently does nothing.
+      const strategy = pickSaveStrategy({
+        ua: navigator.userAgent,
+        touchPoints: navigator.maxTouchPoints,
+        canShareFiles: !!navigator.canShare?.({ files: [file] }),
+      })
+
+      if (strategy === 'share') {
+        try {
+          await navigator.share({ files: [file] })
+          return
+        } catch (err) {
+          if (err?.name === 'AbortError') return // sheet dismissed
+        }
+      }
+
+      const objectUrl = URL.createObjectURL(blob)
+
+      if (strategy !== 'download') {
+        // No reliable download here; show it full size to be long-pressed.
+        window.open(objectUrl, '_blank')
+        showMessage(
+          window.isSecureContext
+            ? 'Press and hold the image to save it.'
+            : 'Serve this over HTTPS to save directly - for now, press and hold the image.',
+          !window.isSecureContext
+        )
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60000)
+        return
+      }
+
+      // Object URL rather than the raw data: URL - mobile browsers refuse to
+      // download multi-megabyte data URIs, silently doing nothing.
+      const link = document.createElement('a')
+      link.href = objectUrl
+      link.download = name
+      link.rel = 'noopener'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 30000)
+      showMessage('Poster saved to your downloads.', false)
+    } catch (err) {
+      console.error('Error saving poster', err)
+      showMessage('Save failed - try Share instead.', true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showMessage])
 
   const sharePoster = useCallback(async () => {
-    if (!finalRef.current) return
     try {
-      const res = await fetch(finalRef.current)
-      const blob = await res.blob()
-      const file = new File([blob], `Tenacity_Poster_${Date.now()}.png`, { type: 'image/png' })
+      const blob = await posterBlob()
+      if (!blob) {
+        showMessage('Still rendering — give it a second and tap Share again.', true)
+        return
+      }
+      const file = new File([blob], posterFileName(), { type: 'image/png' })
 
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: 'Tenacity Creator',
-          text: 'Check out my design from Tenacity Creator!',
-          files: [file]
+          title: brand.share.title,
+          text: brand.share.text,
+          files: [file],
         })
       } else {
-        alert('Web Share is not supported on this device. Please use Save Poster instead.')
+        showMessage('Sharing is not supported here — use Save instead.', true)
       }
     } catch (err) {
-      console.error('Error sharing poster', err)
+      // A cancelled share sheet lands here too; that is not worth a message.
+      if (err?.name !== 'AbortError') {
+        console.error('Error sharing poster', err)
+        showMessage('Could not open the share sheet.', true)
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showMessage])
+
+  // ---------- Batch actions ----------
+  const removeFromBatch = useCallback((id) => {
+    setBatch((b) => b.filter((i) => i.id !== id))
   }, [])
 
+  const clearBatch = useCallback(() => setBatch([]), [])
+
+  const batchFileName = (item, i) => {
+    const name = (item.product || 'poster')
+      .replace(/[^a-z0-9]+/gi, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 28)
+      .toLowerCase()
+    return `${String(i + 1).padStart(2, '0')}-${name || 'poster'}.png`
+  }
+
+  /** One zip beats ten download prompts — and it survives a phone browser
+   *  that blocks repeated downloads. */
+  const saveBatch = useCallback(async () => {
+    if (!batch.length || batchBusy) return
+    setBatchBusy(true)
+    try {
+      const zip = new JSZip()
+      const folder = zip.folder(brand.slug || 'posters')
+      batch.forEach((item, i) => {
+        folder.file(batchFileName(item, i), item.url.split(',')[1], { base64: true })
+      })
+      const blob = await zip.generateAsync({ type: 'blob' })
+      const objectUrl = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = objectUrl
+      link.download = `${brand.slug || 'posters'}_batch_${batch.length}_${Date.now()}.zip`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 30000)
+      showMessage(`${batch.length} posters saved as a zip.`, false)
+    } catch (err) {
+      console.error('Batch save failed', err)
+      showMessage('Could not build the zip — save them one by one.', true)
+    } finally {
+      setBatchBusy(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [batch, batchBusy, showMessage])
+
+  /** Save a single poster out of the batch. */
+  const saveBatchItem = useCallback(
+    async (item, i) => {
+      try {
+        const blob = await (await fetch(item.url)).blob()
+        const objectUrl = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = objectUrl
+        link.download = `${brand.slug || 'poster'}-${batchFileName(item, i)}`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 30000)
+      } catch {
+        showMessage('Could not save that one.', true)
+      }
+    },
+    [showMessage]
+  )
+
   const resetApp = useCallback(() => {
-    cancelAnimationFrame(matrixRafRef.current)
-    clearTimeout(matrixTimerRef.current)
     revealTimersRef.current.forEach(clearTimeout)
     revealTimersRef.current = []
-    clearMatrix()
     const clone = document.getElementById('reveal-specs-clone')
     if (clone) clone.remove()
     capturedRef.current = null
     finalRef.current = null
+    mergeJobRef.current = null
     setResultReady(false)
     setHasSpecs(false)
     setSpecsModel('')
     stopCamera()
     setStep('select')
-  }, [stopCamera, clearMatrix])
+  }, [stopCamera])
 
   useEffect(() => () => stopCamera(), [stopCamera])
 
-  // Warm the Manrope font so the canvas render has it ready.
+  // Warm the display fonts so the canvas render has them ready.
   useEffect(() => {
     if (!document.fonts) return
-    ;['800 32px Manrope', '800 16px Manrope', '800 28px Manrope', '400 42px Bebas Neue'].forEach((f) => {
-      document.fonts.load(f).catch(() => {})
-    })
+    ;['800 32px Manrope', '800 16px Manrope', '800 28px Manrope', '400 46px Bebas Neue'].forEach(
+      (f) => {
+        document.fonts.load(f).catch(() => {})
+      }
+    )
   }, [])
 
   const value = {
@@ -936,8 +1403,9 @@ export function StudioProvider({ children }) {
     specsModel,
     specsDetails,
     specsPrice,
-    cardTheme,
-    setCardTheme,
+    tagStyle,
+    setTagStyle,
+    tagUrl,
     cameraAvailable,
     specsModalOpen,
     captureSize,
@@ -946,9 +1414,38 @@ export function StudioProvider({ children }) {
     resultTitle,
     alert,
     cardScaleRef: cardStateRef,
+    // templates
+    allCards,
+    customTemplates,
+    overlayModalOpen,
+    activeApp,
+    brandVersion,
+    reloadBrand,
+    openApp,
+    closeApp,
+    batchMode,
+    setBatchMode,
+    batch,
+    batchBusy,
+    removeFromBatch,
+    clearBatch,
+    saveBatch,
+    saveBatchItem,
+    qr,
+    setQr,
+    qrDataUrl,
+    qrModalOpen,
+    openQrModal: () => setQrModalOpen(true),
+    closeQrModal: () => setQrModalOpen(false),
     // refs
     refs,
     // actions
+    addOverlay,
+    addOverlayAndUse,
+    removeOverlay,
+    openOverlayModal,
+    closeOverlayModal,
+    goHome,
     selectFormat,
     changeFormat,
     switchStep,

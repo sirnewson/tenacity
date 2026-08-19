@@ -16,6 +16,44 @@ npm run build    # production build -> dist/
 npm run preview  # preview the production build
 ```
 
+## Testing on a real phone
+
+Saving behaves differently on a phone than on a desktop, so it has to be tested
+on a device. A plain `http://192.168.x.x` LAN address is **not** a secure
+context: `navigator.mediaDevices` (camera) and `navigator.share` (saving to the
+camera roll) are both `undefined` there, on iOS Safari and Android Chrome alike.
+
+```bash
+npm run dev:https   # serves https:// on localhost and the LAN address
+```
+
+Open the printed `https://<lan-ip>:5173` on the phone. The certificate in
+`.certs/` is self-signed, so the browser shows a warning once — on iOS tap
+**Show Details -> visit this website**. After accepting, the page is a proper
+secure context and camera + save work as they do in production.
+
+To regenerate the certificate (e.g. after the LAN IP changes):
+
+```bash
+openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 825   -keyout .certs/dev-key.pem -out .certs/dev-cert.pem   -subj "/CN=<lan-ip>" -addext "subjectAltName=IP:<lan-ip>,IP:127.0.0.1,DNS:localhost"
+```
+
+### How saving is routed
+
+`src/platform.js` picks the strategy up front, because a failed save cannot be
+detected after the fact — `<a download>` on iOS throws nothing, it just does
+nothing.
+
+| Environment | Strategy | Why |
+| --- | --- | --- |
+| iOS, in-app browsers (secure) | native share sheet | only route to the camera roll |
+| iOS, in-app browsers (insecure) | open image, long-press | Web Share unavailable without HTTPS |
+| Android Chrome, desktop | `<a download>` | honoured; file lands in Downloads |
+
+The poster is handed over as a **blob URL**, never a `data:` URL — a 1080x1350
+PNG base64-encodes to several MB, and an `<a download>` href that large is
+ignored by mobile Safari and blocked by Chrome on Android.
+
 ## Structure
 
 - `src/StudioContext.jsx` — all app state, camera/upload logic, canvas compositing,

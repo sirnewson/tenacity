@@ -2,9 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* ============================================================================
+   THEME TOKENS
+   `data-theme` is stamped on <html> at boot from brand.config.js.
+   Light is the YXM look: bright yellow surface, black type, rainbow CTA.
+   Every value is an "R G B" triple so Tailwind opacity modifiers work
+   (text-ink/60, bg-panel/70, …).
+   ========================================================================== */
+:root,
+[data-theme='light'] {
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  --surface: 255 255 255; /* white — the colour lives in the cards */
+  --surface-glow: 255 255 255;
+  --ink: 12 12 14;
+  --panel: 255 255 255;
+
+  --panel-bg: linear-gradient(150deg, rgba(255, 255, 255, 0.96), rgba(248, 249, 252, 0.92));
+  --panel-border: rgba(12, 12, 14, 0.08);
+  --panel-shadow: 0 16px 38px -24px rgba(12, 12, 14, 0.3);
+  --track: rgba(10, 10, 10, 0.14);
+  --ambient: rgba(255, 255, 255, 0.9);
+  --ambient-opacity: 0.55;
+
+  /* Brand accent — near-black for the YXM build. */
+  --brand-300: 63 63 70;
+  --brand-400: 24 24 27;
+  --brand-500: 10 10 10;
+  --brand-600: 0 0 0;
+}
+
+[data-theme='dark'] {
+  --surface: 5 5 5;
+  --surface-glow: 5 5 5;
+  --ink: 255 255 255;
+  --panel: 25 25 30;
+
+  --panel-bg: rgba(25, 25, 30, 0.4);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --panel-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  --track: rgba(255, 255, 255, 0.15);
+  --ambient: rgb(var(--brand-500));
+  --ambient-opacity: 0.15;
 }
 
 html,
@@ -13,8 +53,8 @@ body,
   height: 100%;
   width: 100%;
   font-family: 'Inter', sans-serif;
-  background-color: #050505; /* True black for OLED blending */
-  color: white;
+  background-color: rgb(var(--surface));
+  color: rgb(var(--ink));
   overflow: hidden; /* handled internally */
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
@@ -24,22 +64,47 @@ body,
   box-sizing: border-box;
 }
 
+/* App backdrop: soft light bloom from the top-left over the surface colour. */
+.app-bg {
+  background-color: rgb(var(--surface));
+  background-image: radial-gradient(
+      120% 80% at 0% 0%,
+      rgb(var(--brand-400) / 0.09) 0%,
+      rgb(var(--brand-400) / 0) 55%
+    ),
+    radial-gradient(
+      100% 70% at 100% 100%,
+      rgb(var(--brand-500) / 0.07) 0%,
+      rgb(var(--brand-500) / 0) 60%
+    );
+  background-attachment: fixed;
+}
+[data-theme='dark'] .app-bg {
+  background-image: radial-gradient(
+      120% 80% at 0% 0%,
+      rgb(var(--brand-400) / 0.16) 0%,
+      rgb(var(--brand-400) / 0) 55%
+    ),
+    radial-gradient(
+      100% 70% at 100% 100%,
+      rgb(var(--brand-500) / 0.12) 0%,
+      rgb(var(--brand-500) / 0) 60%
+    );
+}
+
 /* ---------- Splash Screen ---------- */
 @keyframes pulseLogo {
   0% {
     transform: scale(0.95);
-    opacity: 0.8;
-    filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.2));
+    opacity: 0.85;
   }
   50% {
     transform: scale(1.05);
     opacity: 1;
-    filter: drop-shadow(0 0 25px rgba(34, 197, 94, 0.6));
   }
   100% {
     transform: scale(0.95);
-    opacity: 0.8;
-    filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.2));
+    opacity: 0.85;
   }
 }
 .animate-pulse-logo {
@@ -55,20 +120,19 @@ body,
   max-height: 500px;
   border-radius: 50%;
   filter: blur(100px);
-  opacity: 0.15;
+  opacity: var(--ambient-opacity);
   z-index: 0;
   pointer-events: none;
+  background: var(--ambient);
   animation: float 20s infinite alternate ease-in-out;
 }
 .ambient-1 {
   top: -10%;
   left: -10%;
-  background: #22c55e;
 }
 .ambient-2 {
   bottom: -10%;
   right: -10%;
-  background: #4ade80;
   animation-delay: -10s;
 }
 @keyframes float {
@@ -83,16 +147,96 @@ body,
   }
 }
 
-/* ---------- Glass UI ---------- */
+/* ---------- Panels ---------- */
 .glass-panel {
-  background: rgba(25, 25, 30, 0.4);
+  background: var(--panel-bg);
+  background-color: rgb(var(--panel) / 0.6);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--panel-shadow);
+}
+
+/* Tinted card. --tint is set per card; the gradient echoes the page wash so a
+   grid of them reads as one family rather than seven unrelated blocks. */
+.card-tint {
+  background-image: linear-gradient(
+    145deg,
+    rgb(var(--tint) / 0.16) 0%,
+    rgb(var(--tint) / 0.05) 42%,
+    rgb(var(--panel) / 0) 100%
+  );
+  background-color: rgb(var(--panel) / 0.72);
+  border: 1px solid rgb(var(--tint) / 0.28);
+  box-shadow: 0 14px 34px -26px rgb(var(--tint) / 0.9);
+  transition: box-shadow 0.25s, transform 0.15s, border-color 0.25s;
+}
+.card-tint:hover {
+  border-color: rgb(var(--tint) / 0.5);
+  box-shadow: 0 18px 40px -22px rgb(var(--tint) / 0.85);
+}
+[data-theme='dark'] .card-tint {
+  background-image: linear-gradient(
+    145deg,
+    rgb(var(--tint) / 0.24) 0%,
+    rgb(var(--tint) / 0.08) 45%,
+    rgb(var(--panel) / 0) 100%
+  );
+  background-color: rgb(var(--panel) / 0.5);
+}
+
+/* Dim layer behind modals — dark in both themes so the panel pops. */
+.modal-scrim {
+  background: rgba(8, 8, 10, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Dialog surface. Unlike .glass-panel this is near-opaque, so long copy stays
+   readable over whatever is behind it. */
+.modal-card {
+  background: rgb(var(--panel) / 0.97);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55);
+}
+
+/* Text inputs / textareas */
+.field {
+  background: rgb(var(--panel) / 0.85);
+  border: 1px solid var(--panel-border);
+  color: rgb(var(--ink));
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field::placeholder {
+  color: rgb(var(--ink) / 0.4);
+}
+.field:focus {
+  border-color: rgb(var(--brand-400) / 0.7);
+  box-shadow: 0 0 0 3px rgb(var(--brand-400) / 0.14);
+  outline: none;
+}
+
+/* Signature YXM gradient pill — used for the primary call to action. */
+.btn-rainbow {
+  background-image: linear-gradient(
+    95deg,
+    #F1E943 0%,
+    #A2F3A1 24%,
+    #89F1BD 40%,
+    #5942E9 62%,
+    #EE436F 84%,
+    #FAA46A 100%
+  );
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 14px 30px -14px rgba(59, 130, 246, 0.75);
+}
+.btn-rainbow:active {
+  transform: scale(0.97);
 }
 
 /* ---------- Viewfinder Grid ---------- */
+/* These sit on top of the captured photo, so they stay light in both themes. */
 .camera-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -100,7 +244,7 @@ body,
   position: absolute;
   inset: 0;
   pointer-events: none;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   z-index: 10;
 }
 .camera-grid div {
@@ -118,10 +262,10 @@ body,
   position: absolute;
   width: 24px;
   height: 24px;
-  border-color: #22c55e;
+  border-color: #ffffff;
   border-style: solid;
   z-index: 11;
-  filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.5));
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
 }
 .tl {
   top: 15px;
@@ -150,30 +294,6 @@ body,
   overflow: visible;
 }
 
-.enhanced-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  border-radius: 0.5rem;
-  -webkit-clip-path: inset(0 0 100% 0);
-  clip-path: inset(0 0 100% 0);
-}
-
-/* ---------- Matrix rain overlay ---------- */
-.matrix-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 28;
-  pointer-events: none;
-  border-radius: 0.75rem;
-  opacity: 0;
-  transition: opacity 0.4s ease-out;
-}
-.matrix-overlay.active {
-  opacity: 1;
-}
-
-/* ---------- Glowing top-to-bottom fill for the overlay reveal ---------- */
 .overlay-reveal {
   position: absolute;
   inset: 0;
@@ -201,52 +321,7 @@ body,
   }
 }
 
-/* Glowing scan line that travels down while the fill reveals */
-.fill-scanline {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 6px;
-  z-index: 32;
-  opacity: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    #86efac 20%,
-    #ffffff 50%,
-    #86efac 80%,
-    transparent
-  );
-  box-shadow: 0 0 20px 6px rgba(34, 197, 94, 0.9),
-    0 0 50px 18px rgba(34, 197, 94, 0.6);
-  border-radius: 50%;
-}
-.fill-scanline.animate {
-  animation: fillScanDown 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-@keyframes fillScanDown {
-  0% {
-    top: 0%;
-    opacity: 0;
-    transform: scaleX(0.8);
-  }
-  6% {
-    opacity: 1;
-    transform: scaleX(1.05);
-  }
-  94% {
-    opacity: 1;
-    transform: scaleX(1.05);
-  }
-  100% {
-    top: 100%;
-    opacity: 0;
-    transform: scaleX(0.8);
-  }
-}
-
+/* Status text sits over the photo — always light with a dark halo. */
 .magic-text {
   position: absolute;
   top: 50%;
@@ -259,7 +334,7 @@ body,
   color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.3em;
-  text-shadow: 0 0 20px rgba(0, 0, 0, 0.9), 0 0 40px #22c55e, 0 0 80px #22c55e;
+  text-shadow: 0 0 20px rgba(0, 0, 0, 0.95), 0 2px 12px rgba(0, 0, 0, 0.9);
   opacity: 0;
   z-index: 40;
   transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -268,33 +343,6 @@ body,
 .magic-text.active {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1) translateY(0);
-}
-
-.particle {
-  position: absolute;
-  background: #fff;
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0;
-  z-index: 25;
-  box-shadow: 0 0 15px 5px #22c55e, 0 0 30px 10px #22c55e;
-}
-.particle.animate {
-  animation: particleAnim 1.2s cubic-bezier(0.1, 1, 0.3, 1) forwards;
-}
-@keyframes particleAnim {
-  0% {
-    transform: translate(0, 0) scale(0.2);
-    opacity: 1;
-  }
-  20% {
-    opacity: 1;
-    transform: translate(calc(var(--tx) * 0.2), calc(var(--ty) * 0.2)) scale(1.5);
-  }
-  100% {
-    transform: translate(var(--tx), var(--ty)) scale(0);
-    opacity: 0;
-  }
 }
 
 .btn-capture {
@@ -306,15 +354,15 @@ body,
 
 @keyframes premiumPulse {
   0% {
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 10px 26px -14px rgba(59, 130, 246, 0.7);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 40px rgba(34, 197, 94, 0.7), 0 0 80px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 16px 40px -12px rgba(139, 92, 246, 0.85);
     transform: scale(1.02);
   }
   100% {
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 10px 26px -14px rgba(59, 130, 246, 0.7);
     transform: scale(1);
   }
 }
@@ -337,10 +385,10 @@ input[type='range']::-webkit-slider-thumb {
   height: 24px;
   width: 24px;
   border-radius: 50%;
-  background: #ffffff;
-  border: 3px solid #22c55e;
+  background: rgb(var(--panel));
+  border: 3px solid rgb(var(--brand-400));
   cursor: pointer;
-  box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+  box-shadow: 0 2px 8px rgba(10, 10, 10, 0.35);
   margin-top: -9px;
   transition: transform 0.1s;
 }
@@ -351,26 +399,26 @@ input[type='range']::-webkit-slider-runnable-track {
   width: 100%;
   height: 6px;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--track);
   border-radius: 4px;
 }
 input[type='range']::-moz-range-thumb {
   height: 24px;
   width: 24px;
   border-radius: 50%;
-  background: #ffffff;
-  border: 3px solid #22c55e;
+  background: rgb(var(--panel));
+  border: 3px solid rgb(var(--brand-400));
   cursor: pointer;
-  box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
 }
 input[type='range']::-moz-range-track {
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--track);
   border-radius: 4px;
 }
 
 /* ---------- Draggable card ---------- */
+/* The tag lives on the photo: its own artwork, always white text. */
 .draggable-specs {
   transition: box-shadow 0.2s, filter 0.2s;
 }
@@ -381,8 +429,8 @@ input[type='range']::-moz-range-track {
   position: absolute;
   top: -10px;
   right: -10px;
-  background: #22c55e;
-  color: #000;
+  background: #ffffff;
+  color: #0a0a0a;
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -394,20 +442,20 @@ input[type='range']::-moz-range-track {
   transform: scale(0.5);
   transition: all 0.2s;
   z-index: 5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 .draggable-specs:hover .edit-hint {
   opacity: 1;
   transform: scale(1);
 }
 
-/* Corner resize handles — always visible so touch users can grab them */
 .resize-handle {
   position: absolute;
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: #22c55e;
-  color: #04120a;
+  background: #ffffff;
+  color: #0a0a0a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -415,9 +463,9 @@ input[type='range']::-moz-range-track {
   z-index: 6;
   cursor: nwse-resize;
   touch-action: none;
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), 0 0 12px rgba(34, 197, 94, 0.7);
-  opacity: 0.92;
+  border: 2px solid rgba(10, 10, 10, 0.25);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  opacity: 0.95;
   transition: transform 0.12s, opacity 0.12s;
 }
 .resize-handle:hover {
@@ -444,6 +492,13 @@ input[type='range']::-moz-range-track {
 }
 .handle-bl i {
   transform: scaleX(-1);
+}
+
+/* Alignment guides shown while dragging the tag (over the photo) */
+.align-guide {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
 }
 
 /* ---------- Layout helpers ---------- */
@@ -485,27 +540,6 @@ input[type='range']::-moz-range-track {
 }
 .delay-500 {
   animation-delay: 0.5s;
-}
-
-@keyframes cardFlip360 {
-  0% {
-    transform: perspective(1000px) rotateY(0deg) scale(0.8);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  50% {
-    transform: perspective(1000px) rotateY(180deg) scale(1.2);
-    opacity: 1;
-  }
-  100% {
-    transform: perspective(1000px) rotateY(360deg) scale(1);
-    opacity: 1;
-  }
-}
-.animate-card-flip {
-  animation: cardFlip360 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
 }
 
 /* Full 360 3D flip of the preview on final render */

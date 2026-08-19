@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caption AI - Cyber Synth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Inter"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                        serif: ['"Playfair Display"', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            400: '#d4ff59',
+                            500: '#bfff00', // Neon Lime
+                            600: '#99cc00',
+                            dim: 'rgba(191, 255, 0, 0.1)',
+                        },
+                        dark: {
+                            900: '#010a0a', // Deepest Green/Black
+                            800: '#021414',
+                            700: '#042222',
+                        },
+                        mint: {
+                            100: '#eefff4', // Main Text
+                            200: 'rgba(238, 255, 244, 0.6)', // Muted
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pulse-glow': 'pulseGlow 3s infinite',
+                        'text-shimmer': 'textShimmer 2.5s ease-out infinite alternate',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+                            '50%': { opacity: '1', transform: 'scale(1.05)' },
+                        },
+                        textShimmer: {
+                            '0%': { backgroundPosition: '0% 50%' },
+                            '100%': { backgroundPosition: '100% 50%' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #010a0a;
+            background-image: radial-gradient(circle at 50% 0%, #042222 0%, #010a0a 100%);
+            min-height: 100vh;
+        }
+
+        /* Cyber Grid Background */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(to right, rgba(191, 255, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(191, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Scanline Effect */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.2;
+        }
+
+        /* Enhanced Glass Panel */
+        .glass-panel {
+            background: linear-gradient(145deg, rgba(2, 20, 20, 0.85), rgba(4, 34, 34, 0.4));
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(191, 255, 0, 0.08);
+            border-top: 1px solid rgba(191, 255, 0, 0.25);
+            border-left: 1px solid rgba(191, 255, 0, 0.15);
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.9), inset 0 0 30px rgba(191, 255, 0, 0.03);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Cyber Input */
+        .input-cyber {
+            background: rgba(1, 10, 10, 0.7);
+            border: 1px solid rgba(191, 255, 0, 0.15);
+            color: #eefff4;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .input-cyber:focus {
+            outline: none;
+            border-color: #bfff00;
+            box-shadow: 0 0 20px rgba(191, 255, 0, 0.15), inset 0 2px 10px rgba(0,0,0,0.5);
+            background: rgba(2, 20, 20, 0.95);
+        }
+        
+        .input-cyber::placeholder {
+            color: rgba(238, 255, 244, 0.25);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #010a0a; }
+        ::-webkit-scrollbar-thumb { background: rgba(191, 255, 0, 0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(191, 255, 0, 0.5); }
+
+        .gradient-text {
+            background: linear-gradient(to right, #bfff00, #4dff88, #bfff00);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: textShimmer 3s linear infinite;
+            text-shadow: 0 0 30px rgba(191, 255, 0, 0.4);
+        }
+
+        /* Loading Dots */
+        .loading-dots span {
+            animation: loadingDots 1.4s infinite ease-in-out both;
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: #010a0a;
+            margin: 0 3px;
+        }
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes loadingDots {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Smooth select chevron removal for standard appearance */
+        select.input-cyber {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+    </style>
+</head>
+<body class="text-mint-100 antialiased selection:bg-brand-500 selection:text-dark-900">
+
+    <!-- Background Ambience Gradients -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="absolute -top-40 -left-40 w-[500px] h-[500px] bg-brand-500 rounded-full mix-blend-screen filter blur-[120px] opacity-10 animate-blob"></div>
+        <div class="absolute top-1/2 -right-40 w-[600px] h-[600px] bg-[#00ffaa] rounded-full mix-blend-screen filter blur-[150px] opacity-10 animate-blob" style="animation-delay: 2s"></div>
+        <div class="absolute -bottom-40 left-1/3 w-[500px] h-[500px] bg-brand-600 rounded-full mix-blend-screen filter blur-[130px] opacity-5 animate-blob" style="animation-delay: 4s"></div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8 relative z-10">
+        
+        <!-- Header -->
+        <header class="text-center mb-16 animate-slide-up">
+            <h1 class="text-5xl sm:text-7xl font-sans font-black mb-4 tracking-tighter text-white drop-shadow-2xl">
+                Caption<span class="gradient-text font-black ml-2">AI</span>
+            </h1>
+            <p class="text-lg text-mint-200 max-w-2xl mx-auto font-light tracking-wide opacity-80">
+                Synthesize engaging social content from raw ideas or visual data.
+            </p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+            
+            <!-- Left Panel: Inputs -->
+            <div class="lg:col-span-5 space-y-6 animate-slide-up" style="animation-delay: 100ms;">
+                <div class="glass-panel rounded-3xl p-6 md:p-8 space-y-7">
+                    
+                    <!-- API Configuration -->
+                    <div class="pb-5 border-b border-brand-500/10 space-y-4">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-brand-500/80 uppercase tracking-widest flex items-center justify-between">
+                                <span class="flex items-center gap-1.5"><i data-lucide="key" class="w-3.5 h-3.5"></i> Universal API Key</span>
+                                <span id="detected-provider" class="text-[8px] text-brand-500/50 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20 font-mono tracking-widest transition-all duration-300">AUTO-DETECT</span>
+                            </label>
+                            <input type="password" id="api-key" 
+                                class="w-full input-cyber rounded-xl py-3 px-4 text-sm font-mono tracking-wider focus:ring-1 focus:ring-brand-500/50" 
+                                placeholder="Paste Gemini, OpenAI, or Groq key...">
+                        </div>
+                        <p class="text-[10px] text-mint-200/40 flex items-start gap-1.5 font-mono">
+                            <i data-lucide="cpu" class="w-3 h-3 mt-0.5 text-brand-500/50"></i>
+                            System routes automatically based on your key signature.
+                        </p>
+                    </div>
+
+                    <!-- Text Input -->
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-bold text-mint-200/80 uppercase tracking-widest flex items-center gap-1.5">
+                            <i data-lucide="terminal" class="w-3.5 h-3.5 text-brand-500"></i>
+                            Input Stream
+                        </label>
+                        <textarea id="idea" rows="3" 
+                            class="w-full input-cyber rounded-xl p-4 text-sm font-light resize-none leading-relaxed" 
+                            placeholder="Describe your moment, concept, or target audience..."></textarea>
+                    </div>
+
+                    <!-- Image Drop Zone -->
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-bold text-mint-200/80 uppercase tracking-widest flex items-center gap-1.5">
+                            <i data-lucide="scan-line" class="w-3.5 h-3.5 text-brand-500"></i>
+                            Visual Data
+                        </label>
+                        
+                        <div id="drop-zone" class="relative group cursor-pointer">
+                            <input type="file" id="file-input" class="hidden" accept="image/*">
+                            
+                            <!-- Initial State -->
+                            <div id="upload-placeholder" class="border border-dashed border-brand-500/20 rounded-xl p-8 text-center transition-all bg-dark-900/40 group-hover:border-brand-500/60 group-hover:bg-brand-500/5 group-hover:shadow-[0_0_20px_rgba(191,255,0,0.05)]">
+                                <div class="w-14 h-14 rounded-full bg-dark-800 flex items-center justify-center mx-auto mb-4 border border-brand-500/20 group-hover:border-brand-500/60 group-hover:scale-110 transition-all duration-300 shadow-lg">
+                                    <i data-lucide="upload-cloud" class="w-6 h-6 text-mint-200 group-hover:text-brand-500 transition-colors"></i>
+                                </div>
+                                <p class="text-sm text-mint-100 font-medium tracking-wide">Upload Visual Context</p>
+                                <p class="text-[10px] text-mint-200 mt-2 font-mono opacity-50 uppercase tracking-widest">PNG, JPG, WEBP</p>
+                            </div>
+
+                            <!-- Preview State -->
+                            <div id="image-preview-container" class="hidden relative rounded-xl overflow-hidden border border-brand-500/40 shadow-[0_0_30px_rgba(191,255,0,0.1)]">
+                                <img id="image-preview" src="" alt="Preview" class="w-full h-48 object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-300">
+                                <div class="absolute inset-0 bg-gradient-to-t from-dark-900 via-transparent to-transparent pointer-events-none"></div>
+                                <button id="remove-image-btn" class="absolute top-3 right-3 p-2 bg-dark-900/80 hover:bg-red-500/90 hover:text-white text-mint-200 rounded-full backdrop-blur-md transition-all border border-white/10 hover:border-red-500 shadow-lg">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </button>
+                                <div class="absolute bottom-3 left-3 text-[10px] text-brand-500 font-mono flex items-center gap-1.5 bg-dark-900/80 px-2 py-1 rounded backdrop-blur-sm border border-brand-500/20">
+                                    <i data-lucide="check-circle-2" class="w-3 h-3"></i> DATA_LOADED
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Grid -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-mint-200/80 uppercase tracking-widest pl-1">Platform</label>
+                            <div class="relative group">
+                                <select id="platform" class="w-full input-cyber rounded-xl py-3 px-4 text-sm cursor-pointer group-hover:border-brand-500/40">
+                                    <option>Instagram</option>
+                                    <option>TikTok</option>
+                                    <option>Twitter / X</option>
+                                    <option>LinkedIn</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="absolute right-4 top-3.5 w-4 h-4 text-brand-500 pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-mint-200/80 uppercase tracking-widest pl-1">Tone</label>
+                            <div class="relative group">
+                                <select id="tone" class="w-full input-cyber rounded-xl py-3 px-4 text-sm cursor-pointer group-hover:border-brand-500/40">
+                                    <option>Casual</option>
+                                    <option>Professional</option>
+                                    <option>Witty</option>
+                                    <option>Minimalist</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="absolute right-4 top-3.5 w-4 h-4 text-brand-500 pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-mint-200/80 uppercase tracking-widest pl-1">Format</label>
+                            <div class="relative group">
+                                <select id="format" class="w-full input-cyber rounded-xl py-3 px-4 text-sm cursor-pointer group-hover:border-brand-500/40">
+                                    <option>Short Punchy</option>
+                                    <option>Storytelling</option>
+                                    <option>Question</option>
+                                    <option>Bullet Points</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="absolute right-4 top-3.5 w-4 h-4 text-brand-500 pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-mint-200/80 uppercase tracking-widest pl-1">Style</label>
+                            <div class="relative group">
+                                <select id="vibe" class="w-full input-cyber rounded-xl py-3 px-4 text-sm cursor-pointer group-hover:border-brand-500/40">
+                                    <option value="Standard">Standard English</option>
+                                    <option value="Swahili">Swahili (Sanifu)</option>
+                                    <option value="Sheng">Sheng (Nairobi Slang)</option>
+                                    <option value="Coastal">Coastal Swahili</option>
+                                    <option value="Kikuyu">Kikuyu Blend</option>
+                                    <option value="Luo">Dholuo Blend</option>
+                                    <option value="Kalenjin">Kalenjin Blend</option>
+                                    <option value="GenZ">Gen Z / Slang</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="absolute right-4 top-3.5 w-4 h-4 text-brand-500 pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <button id="generate-btn" class="w-full group relative overflow-hidden bg-gradient-to-r from-brand-500 to-brand-400 hover:to-white text-dark-900 font-black py-4 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(191,255,0,0.4)] hover:shadow-[0_0_40px_rgba(191,255,0,0.6)] active:scale-[0.98]">
+                        <div class="absolute inset-0 w-full h-full bg-white/20 transform -skew-x-12 -translate-x-full group-hover:animate-[textShimmer_1s_ease-in-out_forwards]"></div>
+                        <div class="flex items-center justify-center gap-2 relative z-10 tracking-wide">
+                            <span id="btn-text">INITIALIZE GENERATION</span>
+                            <i id="btn-icon" data-lucide="zap" class="w-5 h-5 fill-dark-900 transition-transform group-hover:scale-125 group-hover:rotate-12"></i>
+                            <div id="btn-loader" class="hidden loading-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Results -->
+            <div class="lg:col-span-7 space-y-6 animate-slide-up" style="animation-delay: 200ms;">
+                <div class="glass-panel rounded-3xl p-6 md:p-8 min-h-[600px] flex flex-col relative overflow-hidden">
+                    <!-- Scanline Overlay on Panel -->
+                    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-brand-500/5 to-transparent opacity-30 pointer-events-none bg-[length:100%_4px]"></div>
+
+                    <div class="flex items-center justify-between mb-8 relative z-10">
+                        <h2 class="text-xl font-mono font-bold text-white flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></div>
+                            OUTPUT_STREAM
+                        </h2>
+                        <div class="flex items-center gap-3">
+                            <span id="result-count" class="text-[10px] font-bold px-2.5 py-1 rounded bg-brand-500/10 text-brand-500 border border-brand-500/30 hidden font-mono shadow-[0_0_10px_rgba(191,255,0,0.1)]">HISTORY</span>
+                            <button id="clear-history-btn" class="text-[10px] font-bold px-2.5 py-1 rounded bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500 hover:text-white transition-all duration-300 hidden flex items-center gap-1 font-mono">
+                                <i data-lucide="trash-2" class="w-3 h-3"></i> CLEAR
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="empty-state" class="flex-1 flex flex-col items-center justify-center text-center p-8 opacity-50 relative z-10">
+                        <div class="w-28 h-28 rounded-full border border-brand-500/20 bg-dark-800 mb-6 flex items-center justify-center animate-pulse-glow shadow-[inset_0_0_20px_rgba(191,255,0,0.05)]">
+                            <i data-lucide="cpu" class="w-12 h-12 text-brand-500/60"></i>
+                        </div>
+                        <h3 class="text-mint-100 font-light text-xl mb-2 tracking-widest uppercase">Awaiting Input</h3>
+                        <p class="text-mint-200/50 text-xs font-mono tracking-widest">System Ready & Listening</p>
+                    </div>
+
+                    <!-- Output List -->
+                    <div id="output-container" class="space-y-6 hidden relative z-10 custom-scrollbar pr-2 overflow-y-auto max-h-[700px]">
+                        <!-- Content injected via JS -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="mt-20 text-center border-t border-brand-500/20 pt-8 relative z-10">
+            <p class="text-mint-200/50 text-[10px] font-mono tracking-widest uppercase">
+                Created by <a href="https://yxm.digital" target="_blank" class="text-brand-500 hover:text-white transition-colors duration-300">yxm.digital</a>
+            </p>
+        </footer>
+
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-8 right-8 transform translate-y-32 opacity-0 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) z-[100] max-w-sm">
+        <div class="glass-panel border-brand-500 text-brand-500 px-6 py-4 rounded-xl shadow-[0_10px_40px_rgba(191,255,0,0.2)] flex items-center gap-3">
+            <div id="toast-icon-container" class="bg-brand-500/20 p-2 rounded-full flex items-center justify-center flex-shrink-0">
+                <i data-lucide="check" class="w-4 h-4"></i>
+            </div>
+            <span id="toast-message" class="text-xs font-bold font-mono uppercase tracking-wide leading-tight">Copied to Clipboard</span>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // DOM Elements
+        const elements = {
+            apiKeyInput: document.getElementById('api-key'),
+            detectedProviderBadge: document.getElementById('detected-provider'),
+            dropZone: document.getElementById('drop-zone'),
+            fileInput: document.getElementById('file-input'),
+            imagePreviewContainer: document.getElementById('image-preview-container'),
+            imagePreview: document.getElementById('image-preview'),
+            removeImageBtn: document.getElementById('remove-image-btn'),
+            uploadPlaceholder: document.getElementById('upload-placeholder'),
+            ideaInput: document.getElementById('idea'),
+            platform: document.getElementById('platform'),
+            tone: document.getElementById('tone'),
+            format: document.getElementById('format'),
+            vibe: document.getElementById('vibe'),
+            generateBtn: document.getElementById('generate-btn'),
+            btnText: document.getElementById('btn-text'),
+            btnIcon: document.getElementById('btn-icon'),
+            btnLoader: document.getElementById('btn-loader'),
+            outputContainer: document.getElementById('output-container'),
+            emptyState: document.getElementById('empty-state'),
+            resultCount: document.getElementById('result-count'),
+            clearHistoryBtn: document.getElementById('clear-history-btn'),
+            toast: document.getElementById('toast'),
+            toastMessage: document.getElementById('toast-message'),
+            toastIconContainer: document.getElementById('toast-icon-container')
+        };
+
+        let currentImageData = null;
+        let generationHistory = JSON.parse(localStorage.getItem('cybersynth_history')) || [];
+
+        // --- Initialization ---
+        // Load saved API key on startup
+        const savedApiKey = localStorage.getItem('gemini_api_key_cybersynth');
+        if (savedApiKey) {
+            elements.apiKeyInput.value = savedApiKey;
+            updateProviderBadge(savedApiKey);
+        }
+
+        if (generationHistory.length > 0) {
+            renderHistory();
+        }
+
+        // --- Event Listeners ---
+
+        elements.apiKeyInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            updateProviderBadge(val);
+            localStorage.setItem('gemini_api_key_cybersynth', val.trim()); // Auto-save API key immediately
+        });
+
+        // Drag & Drop
+        elements.dropZone.addEventListener('click', (e) => {
+            if (e.target !== elements.removeImageBtn && !elements.removeImageBtn.contains(e.target)) {
+                elements.fileInput.click();
+            }
+        });
+
+        elements.fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            elements.dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            elements.dropZone.addEventListener(eventName, () => {
+                elements.uploadPlaceholder.classList.add('border-brand-500/80', 'bg-brand-500/10', 'scale-[1.02]');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            elements.dropZone.addEventListener(eventName, () => {
+                elements.uploadPlaceholder.classList.remove('border-brand-500/80', 'bg-brand-500/10', 'scale-[1.02]');
+            });
+        });
+
+        elements.dropZone.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]));
+
+        elements.removeImageBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetImage();
+        });
+
+        elements.clearHistoryBtn.addEventListener('click', () => {
+            generationHistory = [];
+            localStorage.removeItem('cybersynth_history');
+            elements.outputContainer.innerHTML = '';
+            elements.outputContainer.classList.add('hidden');
+            elements.emptyState.classList.remove('hidden');
+            elements.resultCount.classList.add('hidden');
+            elements.clearHistoryBtn.classList.add('hidden');
+            elements.clearHistoryBtn.classList.remove('flex');
+            showToast("History Cleared");
+        });
+
+        elements.generateBtn.addEventListener('click', generateCaptions);
+
+        // --- Core Functions ---
+
+        function detectProvider(key) {
+            const k = key.trim();
+            if (!k) return null;
+            if (k.startsWith('AIza')) return 'gemini';
+            if (k.startsWith('gsk_')) return 'groq';
+            if (k.startsWith('sk-')) return 'openai';
+            return 'unknown';
+        }
+
+        function updateProviderBadge(key) {
+            const provider = detectProvider(key);
+            const badge = elements.detectedProviderBadge;
+            
+            if (!provider) {
+                badge.textContent = "AUTO-DETECT";
+                badge.className = "text-[8px] text-brand-500/50 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20 font-mono tracking-widest transition-all duration-300";
+            } else if (provider === 'gemini') {
+                badge.textContent = "GEMINI DETECTED";
+                badge.className = "text-[8px] text-[#bfff00] bg-[#bfff00]/10 px-2 py-0.5 rounded border border-[#bfff00]/40 font-mono tracking-widest transition-all duration-300 shadow-[0_0_15px_rgba(191,255,0,0.3)]";
+            } else if (provider === 'openai') {
+                badge.textContent = "OPENAI DETECTED";
+                badge.className = "text-[8px] text-[#10a37f] bg-[#10a37f]/10 px-2 py-0.5 rounded border border-[#10a37f]/40 font-mono tracking-widest transition-all duration-300 shadow-[0_0_15px_rgba(16,163,127,0.3)]";
+            } else if (provider === 'groq') {
+                badge.textContent = "GROQ DETECTED";
+                badge.className = "text-[8px] text-[#f55036] bg-[#f55036]/10 px-2 py-0.5 rounded border border-[#f55036]/40 font-mono tracking-widest transition-all duration-300 shadow-[0_0_15px_rgba(245,80,54,0.3)]";
+            } else {
+                badge.textContent = "UNKNOWN FORMAT";
+                badge.className = "text-[8px] text-red-400 bg-red-400/10 px-2 py-0.5 rounded border border-red-400/40 font-mono tracking-widest transition-all duration-300";
+            }
+        }
+
+        function handleFile(file) {
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentImageData = e.target.result;
+                    elements.imagePreview.src = currentImageData;
+                    elements.imagePreviewContainer.classList.remove('hidden');
+                    elements.uploadPlaceholder.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else if (file) {
+                showToast("Invalid File Type", true);
+            }
+        }
+
+        function resetImage() {
+            currentImageData = null;
+            elements.fileInput.value = '';
+            elements.imagePreview.src = '';
+            elements.imagePreviewContainer.classList.add('hidden');
+            elements.uploadPlaceholder.classList.remove('hidden');
+        }
+
+        async function generateCaptions() {
+            // Get user API Key & Auto-Detect Provider
+            const apiKey = elements.apiKeyInput.value.trim();
+            const provider = detectProvider(apiKey);
+            
+            if (!apiKey) {
+                showToast("API Key Required", true);
+                elements.apiKeyInput.focus();
+                return;
+            }
+
+            if (provider === 'unknown') {
+                showToast("Unrecognized API Key format.", true);
+                elements.apiKeyInput.focus();
+                return;
+            }
+
+            const idea = elements.ideaInput.value.trim();
+            
+            if (!idea && !currentImageData) {
+                showToast("Input Required", true);
+                elements.ideaInput.focus();
+                return;
+            }
+
+            if (provider === 'groq' && currentImageData) {
+                showToast("Groq doesn't support images here yet.", true);
+                return;
+            }
+
+            // Save it here since it auto-saves on input
+            localStorage.setItem('gemini_api_key_cybersynth', apiKey);
+
+            setLoading(true);
+
+            // Construct System Prompt
+            const platform = elements.platform.value;
+            const vibe = elements.vibe.value;
+            
+            let vibeInstruction = "Write in clear, engaging Standard English.";
+            if (vibe === 'Swahili') {
+                vibeInstruction = "Write entirely in engaging Standard Swahili (Kiswahili Sanifu).";
+            } else if (vibe === 'Sheng') {
+                vibeInstruction = "Creatively blend English, Swahili, and Sheng (Kenyan slang). Use phrases like 'niaje', 'poa', 'manze', 'form ni', 'bana', 'rada'. Capture the vibrant, youthful Nairobi social media tone.";
+            } else if (vibe === 'Coastal') {
+                vibeInstruction = "Write using Coastal Swahili (Kiswahili cha Pwani/Mombasa). Use flavorful expressions like 'mambo vipi', 'raha tupu', 'hadi kuche', 'burudani'. Keep the tone relaxed, warm, and engaging.";
+            } else if (vibe === 'Kikuyu') {
+                vibeInstruction = "Blend English, Swahili, and common Kikuyu words seamlessly. Inject familiar Kikuyu expressions like 'Atia', 'Niatia', 'Mũno', or 'Aca' to give a relatable Central Kenyan vibe.";
+            } else if (vibe === 'Luo') {
+                vibeInstruction = "Blend English, Swahili, and common Dholuo words seamlessly. Inject familiar Luo expressions like 'Omera', 'Idhi nade', 'Ber', or 'Erokamano' to give a vibrant lakeside/Nyanza vibe.";
+            } else if (vibe === 'Kalenjin') {
+                vibeInstruction = "Blend English, Swahili, and common Kalenjin words seamlessly. Inject familiar Kalenjin expressions like 'Chamgei', 'Kongoi', or 'Mutyo' to give a relatable Rift Valley vibe.";
+            } else if (vibe === 'GenZ') {
+                vibeInstruction = "Use Gen Z slang appropriately (no cap, bet, vibe, aesthetic). Keep it trendy.";
+            }
+
+            const systemPrompt = `You are an expert social media strategist.
+            Task: Generate 3 distinct captions.
+            Platform: ${platform}
+            Tone: ${elements.tone.value}
+            Format: ${elements.format.value}
+            Style: ${vibeInstruction}
+            
+            Instructions:
+            1. Include emojis.
+            2. Add 3-5 relevant hashtags.
+            3. STRICTLY return a JSON object with a "captions" array containing strings. Example: {"captions": ["Caption 1", "Caption 2", "Caption 3"]}.
+            4. No markdown formatting. Return raw JSON.`;
+
+            // User Prompt
+            let userPromptText = idea ? `Draft captions about: "${idea}".` : "Draft captions based on this image.";
+            let textResponse = null;
+
+            try {
+                if (provider === 'gemini') {
+                    // --- GEMINI API ROUTE ---
+                    const parts = [{ text: userPromptText }];
+                    if (currentImageData) {
+                        const base64Data = currentImageData.split(',')[1];
+                        const mimeType = currentImageData.split(';')[0].split(':')[1];
+                        parts.push({ inlineData: { mimeType: mimeType, data: base64Data } });
+                    }
+
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ role: "user", parts: parts }],
+                            systemInstruction: { parts: [{ text: systemPrompt }] },
+                            generationConfig: { 
+                                responseMimeType: "application/json", 
+                                responseSchema: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        captions: {
+                                            type: "ARRAY",
+                                            items: {
+                                                type: "STRING"
+                                            }
+                                        }
+                                    }
+                                },
+                                temperature: 0.7 
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error?.message || `Gemini API Error (${response.status})`);
+                    }
+                    
+                    const data = await response.json();
+                    textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                } else if (provider === 'openai' || provider === 'groq') {
+                    // --- OPENAI & GROQ API ROUTE ---
+                    let userContent = [{ type: "text", text: userPromptText }];
+                    
+                    if (currentImageData && provider === 'openai') {
+                        userContent.push({ type: "image_url", image_url: { url: currentImageData } });
+                    }
+
+                    const baseUrl = provider === 'openai' 
+                        ? 'https://api.openai.com/v1/chat/completions' 
+                        : 'https://api.groq.com/openai/v1/chat/completions';
+                        
+                    const model = provider === 'openai' 
+                        ? (currentImageData ? 'gpt-4o' : 'gpt-4o-mini') 
+                        : 'llama3-70b-8192';
+
+                    const response = await fetch(baseUrl, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: [
+                                { role: "system", content: systemPrompt },
+                                { role: "user", content: provider === 'openai' ? userContent : userPromptText }
+                            ],
+                            response_format: { type: "json_object" },
+                            temperature: 0.7
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error?.message || `${provider.toUpperCase()} API Error`);
+                    }
+
+                    const data = await response.json();
+                    textResponse = data.choices?.[0]?.message?.content;
+                }
+                
+                if (textResponse) {
+                    // Clean potential markdown blocks wrapped around JSON
+                    textResponse = textResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+                    const parsed = JSON.parse(textResponse);
+                    
+                    // Handle both direct array format (fallback) and structured object format
+                    const captions = Array.isArray(parsed) ? parsed : (parsed.captions || []);
+                    
+                    if(captions.length > 0) {
+                        const newEntry = {
+                            id: Date.now(),
+                            timestamp: new Date().toLocaleString(),
+                            idea: idea || "Visual Data Analysis",
+                            platform: platform,
+                            style: vibe,
+                            captions: captions
+                        };
+                        generationHistory.unshift(newEntry);
+                        // Keep last 15 generations to prevent localStorage overflow
+                        if (generationHistory.length > 15) generationHistory.pop();
+                        localStorage.setItem('cybersynth_history', JSON.stringify(generationHistory));
+                        
+                        renderHistory();
+                    } else {
+                        throw new Error('Could not parse generated content');
+                    }
+                } else {
+                    throw new Error('No content returned from provider');
+                }
+
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "System Error", true);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function renderHistory() {
+            if (generationHistory.length === 0) return;
+
+            elements.emptyState.classList.add('hidden');
+            elements.outputContainer.classList.remove('hidden');
+            elements.resultCount.classList.remove('hidden');
+            elements.resultCount.textContent = `${generationHistory.length} SAVED`;
+            elements.clearHistoryBtn.classList.remove('hidden');
+            elements.clearHistoryBtn.classList.add('flex');
+            
+            elements.outputContainer.innerHTML = '';
+
+            generationHistory.forEach((entry, index) => {
+                const groupCard = document.createElement('div');
+                groupCard.className = 'mb-6 bg-dark-900/60 border border-brand-500/20 rounded-2xl p-5 animate-slide-up shadow-lg backdrop-blur-sm relative overflow-hidden group/card hover:border-brand-500/40 transition-colors';
+                groupCard.style.animationDelay = `${Math.min(index * 50, 500)}ms`;
+
+                // Subtle background shine effect for cards
+                const shine = document.createElement('div');
+                shine.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-brand-500/5 to-transparent -translate-x-full group-hover/card:animate-[textShimmer_1.5s_ease-out] pointer-events-none';
+                groupCard.appendChild(shine);
+
+                let captionsHtml = entry.captions.map(caption => {
+                    const formattedCaption = caption.replace(/\n/g, '<br>');
+                    return `
+                        <div class="bg-dark-800/80 rounded-xl p-4 border-l-2 border-l-brand-500 hover:bg-dark-700 transition-colors relative group mt-3">
+                            <div class="pr-12 text-mint-100 leading-relaxed text-sm whitespace-pre-wrap font-sans font-light">${formattedCaption}</div>
+                            <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button class="copy-btn p-2 bg-dark-900 hover:bg-brand-500 hover:text-dark-900 rounded-lg text-brand-500 transition-all border border-brand-500/30 hover:border-transparent shadow-md" data-caption="${encodeURIComponent(caption)}" title="Copy">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                const innerContent = document.createElement('div');
+                innerContent.className = 'relative z-10';
+                innerContent.innerHTML = `
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-brand-500/10 text-[10px] font-mono tracking-widest uppercase">
+                        <span class="text-mint-200">
+                            PLATFORM: <span class="text-brand-500 font-bold bg-brand-500/10 px-1.5 py-0.5 rounded">${entry.platform}</span> 
+                            <span class="mx-1 opacity-50">|</span> 
+                            STYLE: <span class="text-brand-500 font-bold bg-brand-500/10 px-1.5 py-0.5 rounded">${entry.style}</span>
+                        </span>
+                        <span class="text-mint-200/40">${entry.timestamp}</span>
+                    </div>
+                    <p class="text-mint-100/90 text-sm italic mb-3 border-l-2 border-mint-200/20 pl-4 py-1">"${entry.idea}"</p>
+                    <div class="space-y-3">
+                        ${captionsHtml}
+                    </div>
+                `;
+                
+                groupCard.appendChild(innerContent);
+
+                // Add copy listeners
+                const copyBtns = groupCard.querySelectorAll('.copy-btn');
+                copyBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const textToCopy = decodeURIComponent(this.getAttribute('data-caption'));
+                        navigator.clipboard.writeText(textToCopy).then(() => showToast());
+                    });
+                });
+
+                elements.outputContainer.appendChild(groupCard);
+            });
+            
+            lucide.createIcons();
+            
+            if(window.innerWidth < 1024 && generationHistory.length === 1) {
+                elements.outputContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                elements.generateBtn.disabled = true;
+                elements.btnText.textContent = "PROCESSING...";
+                elements.btnIcon.classList.add('hidden');
+                elements.btnLoader.classList.remove('hidden');
+                elements.generateBtn.classList.add('opacity-80', 'cursor-wait');
+                elements.generateBtn.classList.remove('hover:shadow-[0_0_40px_rgba(191,255,0,0.6)]');
+            } else {
+                elements.generateBtn.disabled = false;
+                elements.btnText.textContent = "INITIALIZE GENERATION";
+                elements.btnIcon.classList.remove('hidden');
+                elements.btnLoader.classList.add('hidden');
+                elements.generateBtn.classList.remove('opacity-80', 'cursor-wait');
+                elements.generateBtn.classList.add('hover:shadow-[0_0_40px_rgba(191,255,0,0.6)]');
+            }
+        }
+
+        function showToast(msg = "Copied to Clipboard", isError = false) {
+            elements.toastMessage.textContent = msg;
+            
+            const toastContainer = elements.toast.firstElementChild;
+            const iconContainer = elements.toastIconContainer;
+            
+            if (isError) {
+                toastContainer.classList.remove('border-brand-500', 'text-brand-500', 'shadow-[0_10px_40px_rgba(191,255,0,0.2)]');
+                toastContainer.classList.add('border-red-500', 'text-red-500', 'shadow-[0_10px_40px_rgba(239,68,68,0.2)]');
+                iconContainer.classList.remove('bg-brand-500/20');
+                iconContainer.classList.add('bg-red-500/20');
+                
+                // Re-inject raw HTML so Lucide can render it cleanly
+                iconContainer.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4"></i>';
+            } else {
+                toastContainer.classList.add('border-brand-500', 'text-brand-500', 'shadow-[0_10px_40px_rgba(191,255,0,0.2)]');
+                toastContainer.classList.remove('border-red-500', 'text-red-500', 'shadow-[0_10px_40px_rgba(239,68,68,0.2)]');
+                iconContainer.classList.add('bg-brand-500/20');
+                iconContainer.classList.remove('bg-red-500/20');
+                
+                // Re-inject raw HTML so Lucide can render it cleanly
+                iconContainer.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>';
+            }
+            
+            lucide.createIcons();
+
+            elements.toast.classList.remove('translate-y-32', 'opacity-0');
+            
+            setTimeout(() => {
+                elements.toast.classList.add('translate-y-32', 'opacity-0');
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>
