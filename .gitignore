@@ -9,3 +9,6 @@ vite*.log
 # Local HTTPS dev certificate (private key) - never commit
 .certs/
 *.pem
+
+# Local Netlify folder
+.netlify
