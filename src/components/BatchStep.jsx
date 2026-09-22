@@ -65,7 +65,7 @@ export default function BatchStep() {
                   className="relative rounded-xl overflow-hidden glass-panel animate-fade-in delay-100"
                 >
                   <img src={item.url} alt="" className="w-full object-cover" />
-                  <span className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-brand-500 text-panel text-[9px] font-black flex items-center justify-center">
+                  <span className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-brand-500 text-panel text-[9px] font-semibold flex items-center justify-center">
                     {i + 1}
                   </span>
                   <button
@@ -95,10 +95,10 @@ export default function BatchStep() {
               <button
                 onClick={s.saveBatch}
                 disabled={batchBusy}
-                className={`w-full py-4 rounded-full font-black text-base tracking-wide flex items-center justify-center gap-2.5 transition disabled:opacity-50 ${
+                className={`w-full py-4 rounded-full font-semibold text-base tracking-wide flex items-center justify-center gap-2.5 transition disabled:opacity-50 ${
                   brand.ctaStyle === 'rainbow'
                     ? 'btn-rainbow'
-                    : 'bg-gradient-to-r from-brand-500 to-brand-600 text-panel border-2 border-brand-300 active:scale-95'
+                    : 'btn-ink'
                 }`}
               >
                 <i className={`fa-solid ${batchBusy ? 'fa-spinner fa-spin' : 'fa-file-zipper'}`} />
@@ -108,14 +108,14 @@ export default function BatchStep() {
               <div className="flex gap-3">
                 <button
                   onClick={copyAllCaptions}
-                  className="flex-1 py-3.5 rounded-full glass-panel border border-ink/15 text-ink font-bold text-[12px] flex items-center justify-center gap-2 hover:bg-ink/[0.06] transition active:scale-95"
+                  className="flex-1 py-3.5 btn-glass border border-ink/15 text-ink font-bold text-[12px] flex items-center justify-center gap-2 hover:bg-ink/[0.06] transition active:scale-95"
                 >
                   <i className={`fa-solid ${copied ? 'fa-check' : 'fa-pen-nib'} text-xs`} />
                   {copied ? 'Copied' : 'Copy all captions'}
                 </button>
                 <button
                   onClick={s.clearBatch}
-                  className="px-5 py-3.5 rounded-full glass-panel border border-ink/15 text-ink/60 font-bold text-[12px] hover:text-ink transition active:scale-95"
+                  className="px-5 py-3.5 btn-glass border border-ink/15 text-ink/60 font-bold text-[12px] hover:text-ink transition active:scale-95"
                 >
                   Clear
                 </button>

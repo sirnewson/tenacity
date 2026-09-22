@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStudio } from '../StudioContext'
-import { findByCode, loadCatalogue } from '../brandMemory'
+import { findByCode, loadCatalogue, parseCatalogue, saveCatalogue } from '../brandMemory'
 
 /** Point the camera at the shelf barcode and the price tag fills itself.
  *  Uses the browser's own BarcodeDetector — no library, no upload. Where it is
@@ -15,7 +15,8 @@ export default function BarcodeModal({ open, onClose, onResult }) {
   const rafRef = useRef(null)
   const [status, setStatus] = useState('starting')
   const [manual, setManual] = useState('')
-  const catalogue = loadCatalogue()
+  const [catalogue, setCatalogue] = useState(loadCatalogue)
+  const csvRef = useRef(null)
 
   useEffect(() => {
     if (!open) return undefined
@@ -84,6 +85,24 @@ export default function BarcodeModal({ open, onClose, onResult }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
+  // The shop's product list — barcode, name, details, price — uploaded once
+  // and kept on the device, so a scan fills the tag instead of someone typing.
+  const importCsv = (file) => {
+    if (!file) return
+    const r = new FileReader()
+    r.onload = (e) => {
+      const items = parseCatalogue(e.target.result)
+      if (!items.length) {
+        s.showMessage('No rows found — the file needs a barcode column.', true)
+        return
+      }
+      saveCatalogue(items)
+      setCatalogue(items)
+      s.showMessage(`${items.length} products loaded.`, false)
+    }
+    r.readAsText(file)
+  }
+
   const handle = (code) => {
     const hit = findByCode(code)
     if (hit) {
@@ -102,7 +121,7 @@ export default function BarcodeModal({ open, onClose, onResult }) {
     <div className="fixed inset-0 z-[130] modal-scrim flex items-center justify-center p-4">
       <div className="modal-card p-5 rounded-3xl w-full max-w-sm">
         <div className="flex justify-between items-center gap-4 mb-4">
-          <h3 className="text-lg font-black text-ink tracking-tight">
+          <h3 className="text-lg font-semibold text-ink tracking-tight">
             <i className="fa-solid fa-barcode text-brand-400 mr-2" />
             Scan a barcode
           </h3>
@@ -141,7 +160,7 @@ export default function BarcodeModal({ open, onClose, onResult }) {
         )}
 
         <div className="mt-4">
-          <label className="text-[10px] text-brand-400 font-bold uppercase tracking-widest mb-2 block">
+          <label className="eyebrow mb-2 block">
             Or type the code
           </label>
           <div className="flex gap-2">
@@ -151,23 +170,39 @@ export default function BarcodeModal({ open, onClose, onResult }) {
               onKeyDown={(e) => e.key === 'Enter' && manual.trim() && handle(manual.trim())}
               inputMode="numeric"
               placeholder="6161100000000"
-              className="flex-1 field rounded-xl px-3 py-3 text-ink text-[13px] font-mono outline-none"
+              className="flex-1 field rounded-full px-4 py-3 text-ink text-[13px] font-mono outline-none"
             />
             <button
               onClick={() => manual.trim() && handle(manual.trim())}
               disabled={!manual.trim()}
-              className="px-4 rounded-xl bg-brand-500 text-panel font-black text-[12px] disabled:opacity-40 active:scale-95 transition"
+              className="btn-ink px-5 font-semibold text-[12px] disabled:opacity-40"
             >
               Find
             </button>
           </div>
         </div>
 
-        <p className="text-[11px] text-ink/45 leading-relaxed mt-4">
-          {catalogue.length
-            ? `${catalogue.length} products loaded. A match fills the name, pack and price.`
-            : 'No product list yet — add a CSV in Brand memory and scans will fill the tag by themselves.'}
-        </p>
+        <div className="flex items-center gap-3 mt-4">
+          <p className="text-[11px] text-ink/45 leading-relaxed flex-1">
+            {catalogue.length
+              ? `${catalogue.length} products loaded. A match fills the name, pack and price.`
+              : 'No product list yet. Load a CSV of barcode, name, details, price and scans fill the tag by themselves.'}
+          </p>
+          <button
+            onClick={() => csvRef.current?.click()}
+            className="btn-glass shrink-0 px-4 py-2 text-ink font-semibold text-[11px]"
+          >
+            <i className="fa-solid fa-file-csv text-[10px] mr-1.5" />
+            {catalogue.length ? 'Replace' : 'Load CSV'}
+          </button>
+          <input
+            ref={csvRef}
+            type="file"
+            accept=".csv,text/csv,text/plain"
+            className="hidden"
+            onChange={(e) => importCsv(e.target.files?.[0])}
+          />
+        </div>
       </div>
     </div>
   )

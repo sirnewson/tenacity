@@ -35,13 +35,11 @@ export default function CameraStep() {
         style={{ paddingTop: 'calc(0.9rem + var(--safe-top))' }}
       >
         <div className="flex flex-col items-center gap-1">
-          <h2 className="text-xs font-black tracking-[0.3em] uppercase text-ink/80 drop-shadow">
+          <h2 className="text-[13px] font-semibold tracking-tight text-ink">
             {format?.name || 'Studio'}
           </h2>
           {brand.demoMode && (
-            <p className="text-[10px] text-ink/45 font-bold uppercase tracking-wider">
-              {hasSpecs ? 'Step 3 of 4 — place the tag' : 'Step 2 of 4 — frame the photo'}
-            </p>
+            <p className="eyebrow">{hasSpecs ? 'Step 3 — the tag' : 'Step 2 — the photo'}</p>
           )}
         </div>
       </div>
@@ -57,7 +55,7 @@ export default function CameraStep() {
                 type="button"
                 onClick={() => s.changeFormat(card.id)}
                 aria-pressed={selected}
-                className={`relative h-11 w-16 shrink-0 overflow-hidden rounded-lg border transition ${
+                className={`relative h-11 w-16 shrink-0 overflow-hidden rounded-xl border transition ${
                   selected
                     ? 'border-brand-400 ring-2 ring-brand-500/50'
                     : 'border-ink/12 opacity-70 hover:opacity-100'
@@ -76,7 +74,7 @@ export default function CameraStep() {
               type="button"
               onClick={s.openOverlayModal}
               title="Upload your own overlay"
-              className="h-11 w-16 shrink-0 rounded-lg border border-dashed border-ink/25 text-brand-300 hover:border-brand-500 hover:bg-brand-500/10 transition flex flex-col items-center justify-center gap-0.5"
+              className="h-11 w-16 shrink-0 rounded-xl border border-dashed border-ink/25 text-grey hover:border-ink/40 hover:bg-ink/5 transition flex flex-col items-center justify-center gap-0.5"
             >
               <i className="fa-solid fa-cloud-arrow-up text-[11px]" />
               <span className="text-[7px] font-bold uppercase tracking-wide">Overlay</span>
@@ -92,7 +90,7 @@ export default function CameraStep() {
       >
         <div
           ref={refs.captureArea}
-          className="relative bg-ink/10 shadow-2xl overflow-hidden rounded-xl border border-ink/5"
+          className="relative bg-ink/10 overflow-hidden rounded-2xl border border-ink/10"
           style={{
             width: captureSize.w ? `${captureSize.w}px` : '100%',
             height: captureSize.h ? `${captureSize.h}px` : '100%',
@@ -326,7 +324,7 @@ export default function CameraStep() {
         <div className="flex items-center justify-center gap-2.5 mb-3 flex-wrap">
           <button
             onClick={s.resetApp}
-            className="h-10 px-4 rounded-full glass-panel flex items-center gap-2 text-ink/80 hover:bg-ink/[0.06] transition active:scale-95"
+            className="h-10 px-4 btn-glass flex items-center gap-2 text-ink/80 hover:bg-ink/[0.06] transition active:scale-95"
           >
             <i className="fa-solid fa-arrow-left text-sm" />
             <span className="text-[11px] font-bold uppercase tracking-wider">Back</span>
@@ -335,7 +333,7 @@ export default function CameraStep() {
           {isCamera && cameraAvailable && (
             <button
               onClick={s.flipCamera}
-              className="h-10 w-10 rounded-full glass-panel flex items-center justify-center text-ink/80 hover:bg-ink/[0.06] transition active:scale-95"
+              className="h-10 w-10 btn-glass flex items-center justify-center text-ink/80 hover:bg-ink/[0.06] transition active:scale-95"
               aria-label="Flip camera"
             >
               <i className="fa-solid fa-camera-rotate text-sm" />
@@ -352,14 +350,12 @@ export default function CameraStep() {
                 false
               )
             }}
-            className={`h-10 px-4 rounded-full flex items-center gap-2 border transition active:scale-95 ${
-              s.batchMode
-                ? 'bg-brand-500 border-brand-500 text-panel'
-                : 'glass-panel border-ink/15 text-ink'
+            className={`h-10 px-4 flex items-center gap-2 transition active:scale-95 ${
+              s.batchMode ? 'btn-ink' : 'btn-glass'
             }`}
           >
             <i className="fa-solid fa-layer-group text-sm" />
-            <span className="text-[11px] font-black uppercase tracking-wider">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.1em]">
               {s.batchMode ? `Batch ${s.batch.length}` : 'Batch'}
             </span>
           </button>
@@ -367,14 +363,12 @@ export default function CameraStep() {
           {brand.qr?.enabled !== false && (
             <button
               onClick={s.openQrModal}
-              className={`h-10 px-4 rounded-full flex items-center gap-2 border transition active:scale-95 ${
-                s.qr.on
-                  ? 'bg-brand-500 border-brand-500 text-panel'
-                  : 'glass-panel border-ink/15 text-ink'
+              className={`h-10 px-4 flex items-center gap-2 transition active:scale-95 ${
+                s.qr.on ? 'btn-ink' : 'btn-glass'
               }`}
             >
               <i className="fa-solid fa-qrcode text-sm" />
-              <span className="text-[11px] font-black uppercase tracking-wider">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.1em]">
                 {s.qr.on ? 'QR On' : 'QR'}
               </span>
             </button>
@@ -382,14 +376,12 @@ export default function CameraStep() {
 
           <button
             onClick={s.openSpecsModal}
-            className={`h-10 px-4 rounded-full flex items-center gap-2 border transition active:scale-95 ${
-              hasSpecs
-                ? 'bg-brand-500 border-brand-500 text-panel'
-                : 'glass-panel border-ink/15 text-ink'
+            className={`h-10 px-4 flex items-center gap-2 transition active:scale-95 ${
+              hasSpecs ? 'btn-ink' : 'btn-glass'
             }`}
           >
             <i className="fa-solid fa-tags text-sm" />
-            <span className="text-[11px] font-black uppercase tracking-wider">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.1em]">
               {hasSpecs ? 'Edit Tag' : 'Tag'}
             </span>
           </button>
@@ -398,10 +390,10 @@ export default function CameraStep() {
         {/* Zoom / align controls (upload mode) */}
         {mode === 'upload' && (
           <div className="w-full max-w-sm mb-3 flex flex-col items-center gap-2">
-            <div className="flex justify-between w-full text-[11px] text-brand-300 font-bold px-2">
-              <i className="fa-solid fa-image text-[10px]" />
-              <span className="uppercase tracking-widest">Drag photo to align</span>
-              <i className="fa-solid fa-magnifying-glass-plus text-xs" />
+            <div className="flex justify-between items-center w-full px-2">
+              <i className="fa-solid fa-image text-[10px] text-grey" />
+              <span className="eyebrow">Drag to align</span>
+              <i className="fa-solid fa-magnifying-glass-plus text-xs text-grey" />
             </div>
             <input
               type="range"
@@ -433,30 +425,30 @@ export default function CameraStep() {
             </div>
             <button
               onClick={() => s.switchStep('batch')}
-              className="shrink-0 h-10 px-3.5 rounded-full bg-brand-500 text-panel flex items-center gap-1.5 active:scale-95 transition"
+              className="btn-ink shrink-0 h-10 px-3.5 flex items-center gap-1.5"
             >
               <i className="fa-solid fa-layer-group text-[11px]" />
-              <span className="text-[10px] font-black uppercase tracking-wider">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.1em]">
                 Review {s.batch.length}
               </span>
             </button>
           </div>
         )}
 
-        <p className="text-[11px] text-center text-ink/60 font-medium mb-3 h-4">
+        <p className="text-[11px] text-center text-grey mb-3 h-4">
           {s.batchMode
-            ? 'Capture, edit the tag, capture again — they stack up.'
+            ? 'Capture, tag, capture again — they stack up.'
             : isCamera
             ? hasSpecs
-              ? 'Drag the tag to position, then Capture.'
-              : 'Align subject in grid and Capture.'
+              ? 'Drag the tag, then capture.'
+              : 'Frame it, then capture.'
             : hasSpecs
-            ? 'Drag tag & photo, then Confirm.'
-            : 'Drag & zoom photo, then Confirm.'}
+            ? 'Drag the tag and the photo, then confirm.'
+            : 'Drag and zoom, then confirm.'}
         </p>
 
         <div className="flex items-center justify-center w-full max-w-sm gap-10">
-          <label className="cursor-pointer w-14 h-14 rounded-full glass-panel hover:bg-ink/[0.06] flex items-center justify-center transition-colors shadow-lg shrink-0 active:scale-95">
+          <label className="cursor-pointer w-14 h-14 btn-glass hover:bg-ink/[0.06] flex items-center justify-center transition-colors shrink-0 active:scale-95">
             <i className="fa-solid fa-image text-xl" />
             <input
               ref={refs.fileInput}
@@ -472,14 +464,14 @@ export default function CameraStep() {
           {/* Shutter / Confirm */}
           <button
             onClick={s.handleMainAction}
-            className="btn-capture w-[88px] h-[88px] rounded-full border-[5px] border-ink flex items-center justify-center relative shadow-[0_8px_24px_-8px_rgb(var(--ink)/0.5)] shrink-0"
+            className="btn-capture w-[84px] h-[84px] rounded-full border-2 border-ink/25 flex items-center justify-center relative shrink-0"
             style={{
               opacity: isCamera && !cameraAvailable ? 0.3 : 1,
               pointerEvents: isCamera && !cameraAvailable ? 'none' : 'auto',
             }}
           >
             {isCamera ? (
-              <div className="w-[72px] h-[72px] rounded-full bg-ink transition-all hover:scale-95" />
+              <div className="w-[70px] h-[70px] rounded-full bg-ink transition-all hover:scale-95" />
             ) : (
               <i className="fa-solid fa-check text-4xl text-ink" />
             )}
@@ -490,7 +482,7 @@ export default function CameraStep() {
             {mode === 'upload' && (
               <button
                 onClick={s.resetToCamera}
-                className="w-14 h-14 rounded-full glass-panel hover:bg-ink/[0.06] flex items-center justify-center transition-colors active:scale-95"
+                className="w-14 h-14 btn-glass hover:bg-ink/[0.06] flex items-center justify-center transition-colors active:scale-95"
                 aria-label="Discard photo"
               >
                 <i className="fa-solid fa-xmark text-xl" />

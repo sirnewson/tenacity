@@ -44,10 +44,10 @@ export default function HowToUse() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="mt-5 h-10 px-5 rounded-full glass-panel flex items-center gap-2 text-ink/80 hover:bg-ink/[0.06] transition active:scale-95"
+        className="mt-5 h-10 px-5 btn-glass flex items-center gap-2 text-ink/80 hover:bg-ink/[0.06] transition active:scale-95"
       >
-        <i className="fa-solid fa-circle-question text-brand-400 text-sm" />
-        <span className="text-[10px] font-bold uppercase tracking-widest">How to use it</span>
+        <i className="fa-solid fa-circle-question text-ink/50 text-sm" />
+        <span className="text-[10px] font-semibold uppercase tracking-[0.1em]">How to use it</span>
       </button>
 
       {open && (
@@ -60,7 +60,7 @@ export default function HowToUse() {
             className="modal-card p-6 sm:p-7 rounded-3xl w-full max-w-md max-h-[88vh] overflow-y-auto no-scrollbar text-left"
           >
             <div className="flex justify-between items-start gap-4 mb-5">
-              <h3 className="text-xl font-black text-ink tracking-tight">
+              <h3 className="text-xl font-semibold text-ink tracking-tight">
                 <i className="fa-solid fa-circle-question text-brand-400 mr-2" />
                 How to use it
               </h3>
@@ -78,7 +78,7 @@ export default function HowToUse() {
                 <li key={s.title} className="flex gap-3.5 items-start">
                   <span className="relative shrink-0 w-9 h-9 rounded-xl bg-panel border border-ink/10 flex items-center justify-center">
                     <i className={`fa-solid ${s.icon} text-ink text-[13px]`} />
-                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-brand-500 text-panel text-[9px] font-black flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-brand-500 text-panel text-[9px] font-semibold flex items-center justify-center">
                       {i + 1}
                     </span>
                   </span>

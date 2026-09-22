@@ -68,9 +68,6 @@ export function StudioProvider({ children }) {
   const [step, setStep] = useState(
     brand.suite?.enabled ? 'hub' : brand.demoMode ? 'home' : 'select'
   )
-  const [activeApp, setActiveApp] = useState(null)
-  // Settings mutates the shared brand object; this forces the tree to re-read it.
-  const [brandVersion, setBrandVersion] = useState(0)
   // Overlays the visitor uploaded during this session (never persisted).
   const [customTemplates, setCustomTemplates] = useState([])
   const [overlayModalOpen, setOverlayModalOpen] = useState(false)
@@ -381,22 +378,6 @@ export function StudioProvider({ children }) {
     stopCamera()
     setStep(brand.suite?.enabled ? 'hub' : 'home')
   }, [stopCamera])
-
-  // ---------- Bundled apps ----------
-  const reloadBrand = useCallback(() => setBrandVersion((v) => v + 1), [])
-
-  const openApp = useCallback(
-    (id) => {
-      stopCamera()
-      setActiveApp(id)
-      setStep('app')
-    },
-    [stopCamera]
-  )
-  const closeApp = useCallback(() => {
-    setActiveApp(null)
-    setStep('hub')
-  }, [])
 
   // Accepts an id or a format object — a freshly uploaded overlay is passed
   // directly, since it is not in `allFormats` until the next render.
@@ -1418,11 +1399,6 @@ export function StudioProvider({ children }) {
     allCards,
     customTemplates,
     overlayModalOpen,
-    activeApp,
-    brandVersion,
-    reloadBrand,
-    openApp,
-    closeApp,
     batchMode,
     setBatchMode,
     batch,

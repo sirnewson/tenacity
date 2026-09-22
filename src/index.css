@@ -1,12 +1,19 @@
+/* Aurora's two families. Loaded here rather than in index.html so every client
+   build gets them — index.html belongs to the client, this file to master.
+   Bebas Neue stays: it is the price font burned onto the poster. */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@1,500;1,600&family=Bebas+Neue&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ============================================================================
-   THEME TOKENS
+   THEME TOKENS — YXM "Aurora", with an iOS glass surface
    `data-theme` is stamped on <html> at boot from brand.config.js.
-   Light is the YXM look: bright yellow surface, black type, rainbow CTA.
-   Every value is an "R G B" triple so Tailwind opacity modifiers work
+   Aurora's rules: near-monochrome ink on white, hairline borders, no drop
+   shadows, one accent per view. The glass panels are the iOS half — frosted
+   blur instead of elevation, so surfaces separate without a shadow.
+   Colour values are "R G B" triples so Tailwind opacity modifiers work
    (text-ink/60, bg-panel/70, …).
    ========================================================================== */
 :root,
@@ -14,17 +21,18 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
-  --surface: 255 255 255; /* white — the colour lives in the cards */
+  --surface: 255 255 255; /* page */
   --surface-glow: 255 255 255;
-  --ink: 12 12 14;
+  --ink: 17 17 17; /* #111111 */
+  --grey: 111 111 111; /* #6F6F6F — body copy */
   --panel: 255 255 255;
 
-  --panel-bg: linear-gradient(150deg, rgba(255, 255, 255, 0.96), rgba(248, 249, 252, 0.92));
-  --panel-border: rgba(12, 12, 14, 0.08);
-  --panel-shadow: 0 16px 38px -24px rgba(12, 12, 14, 0.3);
-  --track: rgba(10, 10, 10, 0.14);
+  --panel-bg: rgba(255, 255, 255, 0.72);
+  --panel-border: #ececec; /* hairline */
+  --panel-shadow: none; /* Aurora: separate with a border, not elevation */
+  --track: rgba(17, 17, 17, 0.12);
   --ambient: rgba(255, 255, 255, 0.9);
-  --ambient-opacity: 0.55;
+  --ambient-opacity: 0.45;
 
   /* Brand accent — near-black for the YXM build. */
   --brand-300: 63 63 70;
@@ -34,17 +42,33 @@
 }
 
 [data-theme='dark'] {
-  --surface: 5 5 5;
-  --surface-glow: 5 5 5;
+  --surface: 0 0 0;
+  --surface-glow: 0 0 0;
   --ink: 255 255 255;
-  --panel: 25 25 30;
+  --grey: 163 163 163;
+  --panel: 12 12 12;
 
-  --panel-bg: rgba(25, 25, 30, 0.4);
-  --panel-border: rgba(255, 255, 255, 0.08);
-  --panel-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  --track: rgba(255, 255, 255, 0.15);
+  --panel-bg: rgba(20, 20, 22, 0.62);
+  --panel-border: rgba(255, 255, 255, 0.14);
+  --panel-shadow: none;
+  --track: rgba(255, 255, 255, 0.16);
   --ambient: rgb(var(--brand-500));
-  --ambient-opacity: 0.15;
+  --ambient-opacity: 0.18;
+}
+
+/* The aurora itself: four fixed hues, in this order, always. It is an accent —
+   edges, text, one primary button, a progress bar — never a background fill. */
+:root {
+  --aurora: linear-gradient(135deg, #ffe86b 0%, #d8ff52 32%, #9effd0 66%, #5fd9ff 100%);
+  --aurora-warm: linear-gradient(100deg, #ffe86b 0%, #e4ff4a 45%, #9effd0 100%);
+  --aurora-deep: linear-gradient(100deg, #9a7400 0%, #4e8a12 36%, #0b8a6c 68%, #0a6ea0 100%);
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::selection {
+  background: rgba(216, 255, 82, 0.55);
+  color: #111111;
 }
 
 html,
@@ -52,7 +76,7 @@ body,
 #root {
   height: 100%;
   width: 100%;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Manrope', system-ui, sans-serif;
   background-color: rgb(var(--surface));
   color: rgb(var(--ink));
   overflow: hidden; /* handled internally */
@@ -62,6 +86,12 @@ body,
 
 * {
   box-sizing: border-box;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
 }
 
 /* App backdrop: soft light bloom from the top-left over the surface colour. */
@@ -147,92 +177,376 @@ body,
   }
 }
 
-/* ---------- Panels ---------- */
+/* ---------- Surfaces ---------- */
+/* iOS glass: frosted and translucent, held by a hairline rather than a shadow. */
 .glass-panel {
   background: var(--panel-bg);
-  background-color: rgb(var(--panel) / 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--panel-border);
   box-shadow: var(--panel-shadow);
 }
 
-/* Tinted card. --tint is set per card; the gradient echoes the page wash so a
-   grid of them reads as one family rather than seven unrelated blocks. */
+/* Tinted card. --tint is set per card and stays a wash, not a fill, so a grid
+   of them reads as one family. Hover lifts 3px — Aurora's card language. */
 .card-tint {
   background-image: linear-gradient(
-    145deg,
-    rgb(var(--tint) / 0.16) 0%,
-    rgb(var(--tint) / 0.05) 42%,
+    150deg,
+    rgb(var(--tint) / 0.1) 0%,
+    rgb(var(--tint) / 0.03) 45%,
     rgb(var(--panel) / 0) 100%
   );
-  background-color: rgb(var(--panel) / 0.72);
-  border: 1px solid rgb(var(--tint) / 0.28);
-  box-shadow: 0 14px 34px -26px rgb(var(--tint) / 0.9);
-  transition: box-shadow 0.25s, transform 0.15s, border-color 0.25s;
+  background-color: rgb(var(--panel) / 0.6);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--panel-border);
+  transition: transform 0.4s var(--ease-spring), border-color 0.4s var(--ease-spring);
 }
 .card-tint:hover {
-  border-color: rgb(var(--tint) / 0.5);
-  box-shadow: 0 18px 40px -22px rgb(var(--tint) / 0.85);
-}
-[data-theme='dark'] .card-tint {
-  background-image: linear-gradient(
-    145deg,
-    rgb(var(--tint) / 0.24) 0%,
-    rgb(var(--tint) / 0.08) 45%,
-    rgb(var(--panel) / 0) 100%
-  );
-  background-color: rgb(var(--panel) / 0.5);
+  transform: translateY(-3px);
+  border-color: rgb(var(--tint) / 0.55);
 }
 
 /* Dim layer behind modals — dark in both themes so the panel pops. */
 .modal-scrim {
-  background: rgba(8, 8, 10, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(8, 8, 10, 0.7);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
 }
 
-/* Dialog surface. Unlike .glass-panel this is near-opaque, so long copy stays
-   readable over whatever is behind it. */
+/* Dialog surface. Near-opaque, so long copy stays readable over the photo. */
 .modal-card {
-  background: rgb(var(--panel) / 0.97);
+  background: rgb(var(--panel) / 0.96);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
   border: 1px solid var(--panel-border);
-  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- Lit glass ---------- */
+/* Aurora on its own says no elevation. This is the one sanctioned exception:
+   a luminous hairline and a soft bloom, so a control reads as a lit pane of
+   glass rather than a flat box. Used on the nav bar, the hero panel and the
+   studio cards — never on body content. */
+.glass-glow {
+  position: relative;
+  box-shadow: 0 0 40px -14px rgb(var(--brand-400) / 0.45), 0 18px 40px -30px rgba(0, 0, 0, 0.8);
+}
+.glass-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    140deg,
+    rgb(var(--brand-400) / 0.85) 0%,
+    rgb(var(--brand-400) / 0.06) 32%,
+    rgb(var(--brand-400) / 0.06) 68%,
+    rgb(var(--brand-400) / 0.55) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+/* the highlight that sells it as glass: light catching the top edge */
+.glass-glow::after {
+  content: '';
+  position: absolute;
+  inset: 1px 1px auto 1px;
+  height: 42%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+[data-theme='light'] .glass-glow::after {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0));
+}
+
+/* ---------- Hero ---------- */
+/* The client's picture behind the masthead. The scrim keeps the left column
+   readable whatever the artwork does, and the bottom fade hands off to the
+   page instead of stopping on a hard edge. */
+.hero-shot {
+  position: absolute;
+  inset: 0;
+  background-position: right center;
+  background-size: cover;
+  opacity: 0.95;
+}
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+      100deg,
+      rgb(var(--surface)) 4%,
+      rgb(var(--surface) / 0.82) 34%,
+      rgb(var(--surface) / 0.15) 68%,
+      rgb(var(--surface) / 0.3) 100%
+    ),
+    linear-gradient(0deg, rgb(var(--surface)) 2%, rgb(var(--surface) / 0) 45%);
+}
+
+/* ---------- Studio cards ---------- */
+/* The two hero cards on the home screen. The tint comes from the app entry, so
+   a card glows in its own colour without a second class. */
+.studio-card {
+  background-color: rgb(var(--panel) / 0.55);
+  background-image: radial-gradient(
+      120% 140% at 88% 12%,
+      rgb(var(--tint) / 0.26) 0%,
+      rgb(var(--tint) / 0.06) 45%,
+      rgb(var(--tint) / 0) 72%
+    );
+  border: 1px solid rgb(var(--tint) / 0.35);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  min-height: 13.5rem;
+  transition: transform 0.5s var(--ease-spring), border-color 0.5s var(--ease-spring);
+}
+.studio-card {
+  box-shadow: 0 0 46px -18px rgb(var(--tint) / 0.75);
+}
+.studio-card:hover {
+  transform: translateY(-3px);
+  border-color: rgb(var(--tint) / 0.7);
+  box-shadow: 0 0 60px -16px rgb(var(--tint) / 0.9);
+}
+.studio-card:active {
+  transform: scale(0.995);
+}
+[data-theme='dark'] .studio-card {
+  background-color: rgb(var(--panel) / 0.4);
+  background-image: radial-gradient(
+      120% 140% at 88% 12%,
+      rgb(var(--tint) / 0.34) 0%,
+      rgb(var(--tint) / 0.08) 48%,
+      rgb(var(--tint) / 0) 75%
+    );
+}
+
+/* A studio that does not exist yet. It still shows what is coming, but it is
+   flat and unlit, so nothing about it invites a press. */
+.studio-card.is-soon {
+  border-style: dashed;
+  border-color: rgb(var(--ink) / 0.16);
+  box-shadow: none;
+  opacity: 0.72;
+  cursor: default;
+}
+.studio-card.is-soon:hover {
+  transform: none;
+  border-color: rgb(var(--ink) / 0.16);
+  box-shadow: none;
+}
+
+/* ---------- Card artwork ---------- */
+/* Small, slow, and never the thing you look at first. */
+@keyframes mockFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(-1.5deg);
+  }
+}
+@keyframes mockFloatSlow {
+  0%,
+  100% {
+    transform: translateY(-3px) rotate(-6deg);
+  }
+  50% {
+    transform: translateY(4px) rotate(-4deg);
+  }
+}
+.mock-float {
+  animation: mockFloat 7s var(--ease-smooth) infinite;
+}
+.mock-float-slow {
+  animation: mockFloatSlow 9s var(--ease-smooth) infinite;
+}
+
+/* the corner handles blink the way a selected object does */
+@keyframes mockPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.mock-pulse {
+  animation: mockPulse 3s var(--ease-smooth) infinite;
+}
+
+/* a light passing over the artwork */
+@keyframes mockSheen {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  55%,
+  100% {
+    transform: translateX(240%) skewX(-18deg);
+  }
+}
+.mock-sheen {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: mockSheen 5.5s var(--ease-smooth) infinite;
+}
+
+/* the playhead running the timeline */
+@keyframes mockPlayhead {
+  0% {
+    left: 4%;
+  }
+  100% {
+    left: 92%;
+  }
+}
+.mock-playhead {
+  animation: mockPlayhead 6s var(--ease-smooth) infinite alternate;
+}
+
+/* ---------- Controls ---------- */
+/* Actions are pills. Glass is the default; ink is the commitment. */
+.btn-glass {
+  background: var(--panel-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--panel-border);
+  color: rgb(var(--ink));
+  border-radius: 9999px;
+  transition: transform 0.3s var(--ease-spring), border-color 0.3s var(--ease-spring),
+    background-color 0.3s var(--ease-smooth);
+}
+.btn-glass:hover {
+  border-color: rgb(var(--ink) / 0.45);
+}
+.btn-glass:active {
+  transform: scale(0.97);
+}
+
+.btn-ink {
+  background: rgb(var(--ink));
+  color: rgb(var(--surface));
+  border: 1px solid rgb(var(--ink));
+  border-radius: 9999px;
+  transition: transform 0.3s var(--ease-spring), opacity 0.3s var(--ease-smooth);
+}
+.btn-ink:hover {
+  opacity: 0.88;
+}
+.btn-ink:active {
+  transform: scale(0.97);
 }
 
 /* Text inputs / textareas */
 .field {
-  background: rgb(var(--panel) / 0.85);
+  background: rgb(var(--panel) / 0.7);
   border: 1px solid var(--panel-border);
   color: rgb(var(--ink));
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
 }
 .field::placeholder {
-  color: rgb(var(--ink) / 0.4);
+  color: rgb(var(--ink) / 0.35);
 }
 .field:focus {
-  border-color: rgb(var(--brand-400) / 0.7);
-  box-shadow: 0 0 0 3px rgb(var(--brand-400) / 0.14);
+  border-color: rgba(95, 217, 255, 0.7); /* sky */
+  box-shadow: 0 0 0 3px rgba(158, 255, 208, 0.3); /* mint ring */
   outline: none;
 }
 
-/* Signature YXM gradient pill — used for the primary call to action. */
+/* ---------- The aurora ---------- */
+/* One per view. Edges, letters, a progress bar, the primary pill — never a
+   background behind body content. */
+.aurora-gradient {
+  background-image: var(--aurora);
+  background-size: 200% 200%;
+  animation: gradientShift 8s ease infinite;
+}
+@keyframes gradientShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.aurora-text {
+  background-image: var(--aurora-deep);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradientShift 8s ease infinite;
+}
+[data-theme='dark'] .aurora-text {
+  background-image: var(--aurora-warm);
+}
+
+/* 2px animated rule, pinned to the top of a surface */
+.aurora-topline {
+  position: relative;
+}
+.aurora-topline::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  border-radius: 9999px;
+  background-image: var(--aurora);
+  background-size: 200% 200%;
+  animation: gradientShift 8s ease infinite;
+}
+
+/* Gradient border that fades in on hover, without painting the card */
+.aurora-ring {
+  position: relative;
+}
+.aurora-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background-image: var(--aurora);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-spring);
+  pointer-events: none;
+}
+.aurora-ring:hover::after {
+  opacity: 1;
+}
+
+/* Primary call to action: the aurora carries it, ink sits on top. */
 .btn-rainbow {
-  background-image: linear-gradient(
-    95deg,
-    #F1E943 0%,
-    #A2F3A1 24%,
-    #89F1BD 40%,
-    #5942E9 62%,
-    #EE436F 84%,
-    #FAA46A 100%
-  );
-  color: #ffffff;
+  background-image: var(--aurora);
+  background-size: 200% 200%;
+  animation: gradientShift 8s ease infinite;
+  color: #0a0a0a;
   border: none;
-  box-shadow: 0 14px 30px -14px rgba(59, 130, 246, 0.75);
+  border-radius: 9999px;
+  transition: transform 0.3s var(--ease-spring);
 }
 .btn-rainbow:active {
   transform: scale(0.97);
+}
+
+/* Eyebrow: the small uppercase label above a heading. Tracking stops at 0.1em
+   — wider and it stops reading as a word. */
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgb(var(--grey));
 }
 
 /* ---------- Viewfinder Grid ---------- */
@@ -333,7 +647,7 @@ body,
   font-weight: 900;
   color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.12em;
   text-shadow: 0 0 20px rgba(0, 0, 0, 0.95), 0 2px 12px rgba(0, 0, 0, 0.9);
   opacity: 0;
   z-index: 40;
@@ -353,17 +667,12 @@ body,
 }
 
 @keyframes premiumPulse {
-  0% {
-    box-shadow: 0 10px 26px -14px rgba(59, 130, 246, 0.7);
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 16px 40px -12px rgba(139, 92, 246, 0.85);
     transform: scale(1.02);
-  }
-  100% {
-    box-shadow: 0 10px 26px -14px rgba(59, 130, 246, 0.7);
-    transform: scale(1);
   }
 }
 .btn-download-glow {
@@ -511,35 +820,115 @@ input[type='range']::-moz-range-track {
   min-height: 0;
 }
 
+/* ---------- Coming in ---------- */
+/* Two kinds of entrance, both on the spring curve and both once only.
+
+   `.intro-*` fires on mount, for the things already on screen when a step
+   opens. `.reveal` waits for the scroller — see src/useReveal.js. Everything
+   here is off under prefers-reduced-motion, at the end of this file. */
+@keyframes introRise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@keyframes introSettle {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes introLift {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.intro-rise {
+  animation: introRise 0.75s var(--ease-spring) both;
+}
+/* the hero photo eases out of a slight push in, so the page opens on movement
+   without anything sliding about */
+.intro-settle {
+  animation: introSettle 1.1s var(--ease-spring) both;
+}
+/* the nav bar arrives last, from under the edge of the screen */
+.intro-bar {
+  animation: introLift 0.6s var(--ease-spring) both;
+  animation-delay: 0.45s;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  filter: blur(6px);
+  transition: opacity 0.7s var(--ease-spring), transform 0.7s var(--ease-spring),
+    filter 0.7s var(--ease-spring);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+/* a stagger for a row or a stack of them */
+.reveal-1 {
+  transition-delay: 0.05s;
+}
+.reveal-2 {
+  transition-delay: 0.13s;
+}
+.reveal-3 {
+  transition-delay: 0.21s;
+}
+.reveal-4 {
+  transition-delay: 0.29s;
+}
+
 /* ---------- Fade animations ---------- */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px) scale(0.95);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 .animate-fade-in {
-  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.6s var(--ease-spring) forwards;
   opacity: 0;
 }
 .delay-100 {
-  animation-delay: 0.1s;
+  animation-delay: 0.08s;
 }
 .delay-200 {
-  animation-delay: 0.2s;
+  animation-delay: 0.16s;
 }
 .delay-300 {
-  animation-delay: 0.3s;
+  animation-delay: 0.24s;
 }
 .delay-400 {
-  animation-delay: 0.4s;
+  animation-delay: 0.32s;
 }
 .delay-500 {
-  animation-delay: 0.5s;
+  animation-delay: 0.4s;
 }
 
 /* Full 360 3D flip of the preview on final render */
@@ -564,4 +953,27 @@ input[type='range']::-moz-range-track {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* ---------- Reduced motion ---------- */
+/* Non-negotiable: every animation above is off when the device asks for calm. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-fade-in {
+    opacity: 1;
+  }
+  .reveal,
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
 }

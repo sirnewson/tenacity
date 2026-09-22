@@ -42,10 +42,10 @@ export default function CaptionModal() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="h-11 px-5 rounded-full glass-panel flex items-center gap-2 text-ink border border-ink/15 transition active:scale-95"
+        className="h-11 px-5 btn-glass flex items-center gap-2 text-ink border border-ink/15 transition active:scale-95"
       >
         <i className="fa-solid fa-pen-nib text-brand-400 text-sm" />
-        <span className="text-[11px] font-black uppercase tracking-wider">Caption</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wider">Caption</span>
       </button>
 
       {open && (
@@ -58,7 +58,7 @@ export default function CaptionModal() {
             className="modal-card p-6 sm:p-7 rounded-3xl w-full max-w-md max-h-[88vh] overflow-y-auto no-scrollbar text-left"
           >
             <div className="flex justify-between items-start gap-4 mb-4">
-              <h3 className="text-xl font-black text-ink tracking-tight">
+              <h3 className="text-xl font-semibold text-ink tracking-tight">
                 <i className="fa-solid fa-pen-nib text-brand-400 mr-2" />
                 Caption
               </h3>
@@ -86,14 +86,14 @@ export default function CaptionModal() {
             <div className="flex gap-3 mt-5">
               <button
                 onClick={() => setText(build(text))}
-                className="flex-1 py-4 rounded-xl bg-ink/5 hover:bg-ink/10 border border-ink/10 text-ink font-bold transition-colors flex items-center justify-center gap-2"
+                className="btn-glass flex-1 py-4 text-ink font-semibold flex items-center justify-center gap-2"
               >
                 <i className="fa-solid fa-shuffle text-xs" />
                 Another
               </button>
               <button
                 onClick={copy}
-                className="flex-[2] py-4 rounded-xl bg-brand-500 hover:bg-brand-400 text-panel font-black shadow-neon transition-all tracking-wide flex items-center justify-center gap-2"
+                className="btn-ink flex-[2] py-4 font-semibold tracking-[0.06em] flex items-center justify-center gap-2"
               >
                 <i className={`fa-solid ${copied ? 'fa-check' : 'fa-copy'} text-sm`} />
                 {copied ? 'Copied' : 'Copy caption'}

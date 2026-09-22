@@ -1,70 +1,8 @@
-/* The brand's memory: who they are, how they sound, what they sell.
-   Plain markdown, stored on the device, editable in the app. It exists so that
-   anything generated later — captions today, images and video when Generate
-   Content lands — is grounded in this brand rather than a generic one. */
+/* The product list the barcode scanner reads: barcode, name, details, price.
+   Uploaded once as a CSV in Settings and kept on the device, so scanning a
+   product in the studio fills the price tag instead of someone typing it. */
 
-const KEY = 'yxm.brand.memory'
 const CATALOGUE_KEY = 'yxm.brand.catalogue'
-
-export const MEMORY_TEMPLATE = `# Brand memory
-
-Everything below is context. Keep it short and true — it is what the tools read
-before they write anything for you.
-
-## Who we are
-One or two lines. What the business does, and for whom.
-
-## How we sound
-Three words for the tone (e.g. warm, direct, no hype).
-Words we use:
-Words we never use:
-
-## What we sell
-- Category — the lines we are known for
-- Category — anything seasonal
-
-## Who buys from us
-Who they are, and what they care about when they buy.
-
-## Offers and rhythm
-When offers run, what "this week" usually means, any weekly post we always do.
-
-## Contact
-Phone / WhatsApp:
-Website:
-Branches:
-
-## Rules
-- Always mention the price when there is one.
-- Never promise stock we cannot confirm.
-`
-
-export function loadMemory() {
-  try {
-    return localStorage.getItem(KEY) ?? MEMORY_TEMPLATE
-  } catch {
-    return MEMORY_TEMPLATE
-  }
-}
-
-export function saveMemory(text) {
-  try {
-    localStorage.setItem(KEY, text)
-    return true
-  } catch {
-    return false
-  }
-}
-
-/** Rough completeness signal — how many sections have something under them. */
-export function memoryStats(text = '') {
-  const sections = text.split(/^##\s+/m).slice(1)
-  const filled = sections.filter((s) => {
-    const body = s.split('\n').slice(1).join('\n')
-    return body.replace(/[-\s]/g, '').length > 12
-  })
-  return { total: sections.length, filled: filled.length, words: (text.match(/\S+/g) || []).length }
-}
 
 // ------------------------------------------------------------------ catalogue
 /** A product list the business uploads once: barcode, name, details, price.

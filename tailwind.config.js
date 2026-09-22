@@ -3,7 +3,11 @@ export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
-      fontFamily: { sans: ['Inter', 'sans-serif'] },
+      fontFamily: {
+        sans: ['Manrope', 'system-ui', 'sans-serif'],
+        // One written-feeling accent word in a heading. Never body copy.
+        accent: ['"Playfair Display"', 'serif'],
+      },
       colors: {
         // All driven by CSS variables so the UI re-skins from
         // src/brand.config.js — see applyBrandTheme() and applyPalette().
@@ -16,11 +20,14 @@ export default {
         // Semantic tokens — these flip with the light/dark theme, so the same
         // class reads correctly in both. `ink` is text/foreground.
         ink: 'rgb(var(--ink) / <alpha-value>)',
+        grey: 'rgb(var(--grey) / <alpha-value>)',
         surface: 'rgb(var(--surface) / <alpha-value>)',
         panel: 'rgb(var(--panel) / <alpha-value>)',
         dark: { 800: '#131316', 900: '#0a0a0c', 950: '#050505' },
       },
       boxShadow: {
+        // Aurora has no elevation; these two are the exception, and they only
+        // ever land on the tag sitting over a photo.
         neon: '0 0 20px rgb(var(--brand-400) / 0.35)',
         'neon-strong': '0 0 40px rgb(var(--brand-400) / 0.5)',
       },

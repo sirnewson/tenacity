@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:https": "vite --mode https",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "brand:assets": "python tools/make-brand-assets.py"
   },
   "dependencies": {
     "jszip": "^3.10.1",

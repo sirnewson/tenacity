@@ -58,7 +58,7 @@ export default function SpecsModal() {
         }`}
       >
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl sm:text-2xl font-black text-ink tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-semibold text-ink tracking-tight">
             <i className="fa-solid fa-tags text-brand-400 mr-2" /> {f.title}
           </h3>
           <button
@@ -72,12 +72,12 @@ export default function SpecsModal() {
         <div className="space-y-6">
           <div>
             <div className="flex items-center justify-between gap-3 mb-2">
-              <label className="text-[10px] text-brand-400 font-bold uppercase tracking-widest">
+              <label className="eyebrow">
                 {f.nameLabel}
               </label>
               <button
                 onClick={() => setScanning(true)}
-                className="px-3 py-1.5 rounded-full bg-brand-500/15 border border-brand-500/40 text-ink text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition"
+                className="btn-glass px-3.5 py-1.5 text-ink text-[10px] font-semibold uppercase tracking-[0.1em] flex items-center gap-1.5"
               >
                 <i className="fa-solid fa-barcode text-[10px]" />
                 Scan
@@ -93,7 +93,7 @@ export default function SpecsModal() {
             />
           </div>
           <div>
-            <label className="text-[10px] text-brand-400 font-bold uppercase tracking-widest mb-2 block">
+            <label className="eyebrow mb-2 block">
               {f.detailsLabel}
             </label>
             <textarea
@@ -105,7 +105,7 @@ export default function SpecsModal() {
             />
           </div>
           <div>
-            <label className="text-[10px] text-brand-400 font-bold uppercase tracking-widest mb-2 block">
+            <label className="eyebrow mb-2 block">
               {f.priceLabel}
             </label>
             <input
@@ -117,7 +117,7 @@ export default function SpecsModal() {
             />
           </div>
           <div>
-            <label className="text-[10px] text-brand-400 font-bold uppercase tracking-widest mb-2 block">
+            <label className="eyebrow mb-2 block">
               Tag Style
             </label>
             <div className="grid grid-cols-3 gap-3">
@@ -129,7 +129,7 @@ export default function SpecsModal() {
                     onClick={() => setTagStyle(t.id)}
                     className={`rounded-xl p-3 flex flex-col items-center gap-2 border transition-all ${
                       selected
-                        ? 'border-brand-500 ring-2 ring-brand-500/40'
+                        ? 'border-ink ring-2 ring-ink/25'
                         : 'border-ink/10 hover:border-ink/30'
                     }`}
                   >
@@ -148,7 +148,7 @@ export default function SpecsModal() {
           </div>
 
           <div>
-            <label className="text-[10px] text-brand-400 font-bold uppercase tracking-widest mb-2 block">
+            <label className="eyebrow mb-2 block">
               Tag Scale
             </label>
             <input
@@ -177,13 +177,13 @@ export default function SpecsModal() {
         <div className="flex gap-4 mt-8">
           <button
             onClick={clearSpecs}
-            className="flex-1 py-4 rounded-xl bg-ink/5 hover:bg-ink/[0.06] border border-ink/10 text-ink font-bold transition-colors"
+            className="btn-glass flex-1 py-4 text-ink font-semibold"
           >
             Remove Tag
           </button>
           <button
             onClick={() => applySpecs(model, details, price, scale)}
-            className="flex-[2] py-4 rounded-xl bg-brand-500 hover:bg-brand-400 text-panel font-black shadow-neon transition-all tracking-wide"
+            className="btn-ink flex-[2] py-4 font-semibold tracking-[0.06em]"
           >
             Apply to Screen
           </button>

@@ -40,7 +40,7 @@ export default function QrModal() {
         className="modal-card p-6 sm:p-7 rounded-3xl w-full max-w-md max-h-[92vh] overflow-y-auto no-scrollbar"
       >
         <div className="flex justify-between items-start gap-4 mb-5">
-          <h3 className="text-xl font-black text-ink tracking-tight">
+          <h3 className="text-xl font-semibold text-ink tracking-tight">
             <i className="fa-solid fa-qrcode text-brand-400 mr-2" />
             {brand.qr?.title || 'Add a scan code'}
           </h3>
@@ -55,7 +55,7 @@ export default function QrModal() {
 
         {presets.length > 0 && (
           <>
-            <label className="text-[10px] text-brand-400 font-bold uppercase tracking-widest mb-2 block">
+            <label className="eyebrow mb-2 block">
               What should it open?
             </label>
             <div className="grid grid-cols-1 gap-2 mb-5">
@@ -70,7 +70,7 @@ export default function QrModal() {
                     }}
                     className={`flex items-center gap-3 rounded-xl px-4 py-3 border text-left transition ${
                       selected
-                        ? 'border-brand-500 bg-brand-500/10'
+                        ? 'border-ink bg-ink/[0.06]'
                         : 'border-ink/10 hover:border-ink/30'
                     }`}
                   >
@@ -88,7 +88,7 @@ export default function QrModal() {
           </>
         )}
 
-        <label className="text-[10px] text-brand-400 font-bold uppercase tracking-widest mb-2 block">
+        <label className="eyebrow mb-2 block">
           Or paste any link
         </label>
         <input
@@ -100,7 +100,7 @@ export default function QrModal() {
           className="w-full field rounded-xl p-4 text-ink text-sm font-medium outline-none mb-5"
         />
 
-        <label className="text-[10px] text-brand-400 font-bold uppercase tracking-widest mb-2 block">
+        <label className="eyebrow mb-2 block">
           Caption under the code
         </label>
         <input
@@ -113,7 +113,7 @@ export default function QrModal() {
 
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <label className="text-[10px] text-brand-400 font-bold uppercase tracking-widest mb-2 block">
+            <label className="eyebrow mb-2 block">
               Corner
             </label>
             <div className="grid grid-cols-2 gap-1.5">
@@ -127,9 +127,9 @@ export default function QrModal() {
                   key={c}
                   onClick={() => setCorner(c)}
                   aria-label={c}
-                  className={`h-10 rounded-lg border flex items-center justify-center transition ${
+                  className={`h-10 rounded-full border flex items-center justify-center transition ${
                     corner === c
-                      ? 'border-brand-500 bg-brand-500/15 text-ink'
+                      ? 'border-ink bg-ink/[0.06] text-ink'
                       : 'border-ink/10 text-ink/50 hover:border-ink/30'
                   }`}
                 >
@@ -139,7 +139,7 @@ export default function QrModal() {
             </div>
           </div>
           <div>
-            <label className="text-[10px] text-brand-400 font-bold uppercase tracking-widest mb-2 block">
+            <label className="eyebrow mb-2 block">
               Size
             </label>
             <div className="flex flex-col gap-1.5">
@@ -147,9 +147,9 @@ export default function QrModal() {
                 <button
                   key={sz}
                   onClick={() => setSize(sz)}
-                  className={`h-[30px] rounded-lg border text-[11px] font-black transition ${
+                  className={`h-[30px] rounded-full border text-[11px] font-semibold transition ${
                     size === sz
-                      ? 'border-brand-500 bg-brand-500/15 text-ink'
+                      ? 'border-ink bg-ink/[0.06] text-ink'
                       : 'border-ink/10 text-ink/50 hover:border-ink/30'
                   }`}
                 >
@@ -176,14 +176,14 @@ export default function QrModal() {
               setQr({ on: false, value: '', label, corner, size })
               closeQrModal()
             }}
-            className="flex-1 py-4 rounded-xl bg-ink/5 hover:bg-ink/10 border border-ink/10 text-ink font-bold transition-colors"
+            className="btn-glass flex-1 py-4 text-ink font-semibold"
           >
             Remove
           </button>
           <button
             onClick={apply}
             disabled={!value.trim()}
-            className="flex-[2] py-4 rounded-xl bg-brand-500 hover:bg-brand-400 text-panel font-black shadow-neon transition-all tracking-wide disabled:opacity-40"
+            className="btn-ink flex-[2] py-4 font-semibold tracking-[0.06em] disabled:opacity-40"
           >
             Put it on the poster
           </button>

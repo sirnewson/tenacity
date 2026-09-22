@@ -4,18 +4,13 @@ import SplashScreen from './components/SplashScreen'
 import AlertToast from './components/AlertToast'
 import HomeStep from './components/HomeStep'
 import AppHub from './components/AppHub'
-import AppFrame from './components/AppFrame'
+import NavBar from './components/NavBar'
 import SelectStep from './components/SelectStep'
 import CameraStep from './components/CameraStep'
 import ResultStep from './components/ResultStep'
 import BatchStep from './components/BatchStep'
-import GenerateSoonStep from './components/GenerateSoonStep'
-import SettingsStep from './components/SettingsStep'
-import TaskBoardStep from './components/TaskBoardStep'
 import VideoStudioStep from './components/VideoStudioStep'
-import ClientRoomStep from './components/ClientRoomStep'
-import MemoryStep from './components/MemoryStep'
-import NotesStep from './components/NotesStep'
+import StoryStudioStep from './components/StoryStudioStep'
 import SpecsModal from './components/SpecsModal'
 import OverlayUploadModal from './components/OverlayUploadModal'
 import QrModal from './components/QrModal'
@@ -36,18 +31,14 @@ function Studio() {
       <CameraStep />
       <ResultStep />
       <BatchStep />
-      <NotesStep />
-      <MemoryStep />
-      <GenerateSoonStep />
-      <SettingsStep />
-      <ClientRoomStep />
-      <TaskBoardStep />
       <VideoStudioStep />
+      <StoryStudioStep />
+
+      <NavBar />
 
       <SpecsModal />
       <OverlayUploadModal />
       <QrModal />
-      <AppFrame />
     </div>
   )
 }

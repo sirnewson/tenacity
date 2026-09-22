@@ -26,7 +26,7 @@ export default function SplashScreen() {
       <div className="relative flex flex-col items-center justify-center">
         <div className="absolute -inset-4 bg-panel blur-[80px] opacity-60 rounded-full w-40 h-40 m-auto animate-pulse" />
         <BrandLogo className="h-20 sm:h-28 animate-pulse-logo relative z-10" />
-        <h1 className="text-xl font-black tracking-tight drop-shadow-lg text-ink mt-6 relative z-10 animate-fade-in delay-200">
+        <h1 className="text-xl font-semibold tracking-tight text-ink mt-6 relative z-10 animate-fade-in delay-200">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-300 to-brand-500">
             {brand.headline}
           </span>{' '}

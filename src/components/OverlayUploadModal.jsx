@@ -29,7 +29,7 @@ export default function OverlayUploadModal() {
         className="modal-card p-6 sm:p-7 rounded-3xl w-full max-w-md max-h-[92vh] overflow-y-auto no-scrollbar"
       >
         <div className="flex justify-between items-start gap-4 mb-4">
-          <h3 className="text-xl font-black text-ink tracking-tight">
+          <h3 className="text-xl font-semibold text-ink tracking-tight">
             <i className="fa-solid fa-cloud-arrow-up text-brand-400 mr-2" />
             {h.title}
           </h3>
@@ -50,7 +50,7 @@ export default function OverlayUploadModal() {
             <div className="absolute inset-x-0 top-0 h-[14%] bg-brand-500/70" />
             <div className="absolute inset-x-0 bottom-0 h-[18%] bg-brand-500/70" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-[8px] font-black uppercase tracking-wider text-ink/50 rotate-[-8deg]">
+              <span className="text-[8px] font-semibold uppercase tracking-wider text-ink/50 rotate-[-8deg]">
                 photo
               </span>
             </div>
@@ -90,8 +90,8 @@ export default function OverlayUploadModal() {
           }}
           className={`mt-6 block rounded-2xl border-2 border-dashed p-6 text-center cursor-pointer transition ${
             dragging
-              ? 'border-brand-400 bg-brand-500/10'
-              : 'border-ink/15 hover:border-brand-500/60 hover:bg-ink/5'
+              ? 'border-ink bg-ink/[0.06]'
+              : 'border-ink/15 hover:border-ink/40 hover:bg-ink/5'
           }`}
         >
           <input

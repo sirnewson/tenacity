@@ -4,7 +4,14 @@ import brand from '../brand.config'
 
 export { brand }
 
-const asset = (file) => `${brand.assetDir.replace(/\/$/, '')}/${file}`
+/* Everything the app loads from public/ goes through here so it keeps working
+   when the build is served from a sub-path (GitHub Pages project sites, a
+   staging folder). Vite's BASE_URL is '/' for a normal build, so this is a
+   no-op locally. */
+export const publicUrl = (path) =>
+  `${import.meta.env.BASE_URL}${String(path).replace(/^\//, '')}`
+
+const asset = (file) => publicUrl(`${brand.assetDir.replace(/\/$/, '')}/${file}`)
 
 /** An uploaded logo (Settings) wins over the one shipped with the build. */
 export const logoUrl = () => brand.logoDataUrl || asset(brand.logo)
@@ -38,8 +45,7 @@ export const formats = Object.fromEntries(
   })
 )
 
-/** Home-screen picker cards (also drives the in-editor template strip). */
-export const selectCards = brand.templates.map((t, i) => ({
+const toCard = (t, i) => ({
   id: t.id,
   icon: t.icon || 'fa-image',
   iconColor: t.iconColor || 'text-white',
@@ -47,6 +53,39 @@ export const selectCards = brand.templates.map((t, i) => ({
   sub: t.sub || '',
   bg: asset(t.file),
   delay: DELAYS[i % DELAYS.length],
+})
+
+/* A template can be pointed at one studio or the other:
+     forVideo: true    only the Video Studio offers it
+     forPoster: false  the same thing said the other way round
+   Anything unmarked shows in both, which is the usual case. */
+const inPoster = (t) => t.forPoster !== false && !t.forVideo
+const inVideo = (t) => t.forVideo !== false
+
+/** Home-screen picker cards (also drives the in-editor template strip). */
+export const selectCards = brand.templates.filter(inPoster).map(toCard)
+
+/** What the Video Studio offers. Clips always render 9:16, so only the tall
+ *  overlays fit — a 4:5 plate would stretch across a vertical frame. Falls back
+ *  to whatever is marked for video, then to the whole set, so it never opens
+ *  empty for a client whose artwork is all feed-shaped. */
+const videoPool = brand.templates.filter(inVideo)
+const tallPool = videoPool.filter((t) => t.size === '9:16')
+export const videoCards = (tallPool.length ? tallPool : videoPool.length ? videoPool : brand.templates).map(
+  toCard
+)
+
+/** The picture behind the home screen's masthead, if the client has one.
+ *  Sits in public/brand/<slug>/ with the rest of their artwork. */
+export const heroUrl = brand.hero ? asset(brand.hero) : ''
+
+/** Logo stings and ready-made clips shipped with the build, for the head or
+ *  tail of a cut. Whatever the team saves on the device joins these in the
+ *  studio's bank — see src/motionBank.js. */
+export const motionClips = (brand.motions || []).map((m) => ({
+  ...m,
+  url: asset(m.file),
+  posterUrl: m.poster ? asset(m.poster) : '',
 }))
 
 /** Price-tag plates, keyed by style id. */
